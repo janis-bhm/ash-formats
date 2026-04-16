@@ -55,7 +55,7 @@ The generator uses Vulkan headers XML from the `ash` submodule.
 2. Run the generator:
 
    ```bash
-   cargo run -p formats-generator
+   cargo run -p generator
    ```
 
 This updates generated source in `crates/ash-formats/src`.
