@@ -1,8 +1,4 @@
-use std::{
-    collections::{BTreeMap, BTreeSet, HashMap},
-    path::Path,
-    str::FromStr,
-};
+use std::{collections::BTreeMap, path::Path, str::FromStr};
 
 use heck::ToUpperCamelCase;
 use quote::{ToTokens, format_ident, quote};
@@ -23,7 +19,7 @@ macro_rules! get_variant {
     };
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 enum Chroma {
     Chroma420,
     Chroma422,
@@ -54,7 +50,7 @@ impl ToTokens for Chroma {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 enum Compression {
     Bc,
     Etc2,
@@ -94,7 +90,7 @@ impl ToTokens for Compression {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 enum NumericFormat {
     UInt,
     SInt,
@@ -143,7 +139,7 @@ impl ToTokens for NumericFormat {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 enum ComponentName {
     R,
     G,
@@ -183,7 +179,7 @@ impl ToTokens for ComponentName {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 struct Component {
     name: ComponentName,
     numeric_format: NumericFormat,
@@ -191,7 +187,7 @@ struct Component {
     plane_index: Option<u8>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 struct Plane<'a> {
     index: u8,
     width_divisor: u8,
@@ -199,7 +195,7 @@ struct Plane<'a> {
     compatible_format: &'a str,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 struct AspectMask(u8);
 
 impl core::ops::BitOr for AspectMask {
@@ -292,17 +288,17 @@ pub fn write_source_code<P: AsRef<Path>>(vk_headers_dir: &Path, src_dir: P) {
         .flat_map(|formats| &formats.children)
         .collect::<Vec<_>>();
 
-    let mut block_sizes = HashMap::<u8, Vec<&str>>::new();
-    let mut texels_per_block = HashMap::<u8, Vec<&str>>::new();
-    let mut packed = HashMap::<u8, Vec<&str>>::new();
-    let mut chromas = HashMap::<Chroma, Vec<&str>>::new();
-    let mut compressions = HashMap::<Compression, Vec<&str>>::new();
+    let mut block_sizes = BTreeMap::<u8, Vec<&str>>::new();
+    let mut texels_per_block = BTreeMap::<u8, Vec<&str>>::new();
+    let mut packed = BTreeMap::<u8, Vec<&str>>::new();
+    let mut chromas = BTreeMap::<Chroma, Vec<&str>>::new();
+    let mut compressions = BTreeMap::<Compression, Vec<&str>>::new();
     let mut classes = BTreeMap::<&str, Vec<&str>>::new();
-    let mut block_extents = HashMap::<(u8, u8, u8), Vec<&str>>::new();
+    let mut block_extents = BTreeMap::<(u8, u8, u8), Vec<&str>>::new();
 
-    let mut components = HashMap::<Vec<Component>, Vec<&str>>::new();
-    let mut planes = HashMap::<Vec<Plane>, Vec<&str>>::new();
-    let mut aspects = HashMap::<AspectMask, Vec<&str>>::new();
+    let mut components = BTreeMap::<Vec<Component>, Vec<&str>>::new();
+    let mut planes = BTreeMap::<Vec<Plane>, Vec<&str>>::new();
+    let mut aspects = BTreeMap::<AspectMask, Vec<&str>>::new();
 
     formats.iter().for_each(|format| {
         let name = &format.name;
@@ -408,7 +404,7 @@ pub fn write_source_code<P: AsRef<Path>>(vk_headers_dir: &Path, src_dir: P) {
         pub trait FormatExt {
             /// The size of a block of the format in bytes. For uncompressed
             /// formats, this is the size of a texel.
-            fn block_size(self) -> u8;
+            fn block_size(self) -> DeviceSize;
             /// The dimensions of a block of the format in texels. For
             /// uncompressed formats, this is always (1, 1, 1).
             fn block_extent(self) -> (u8, u8, u8);
@@ -673,6 +669,8 @@ pub fn write_source_code<P: AsRef<Path>>(vk_headers_dir: &Path, src_dir: P) {
             .map(|f| generator::variant_ident("VkFormat", f))
             .map(|f| quote! { Self::#f });
 
+        let block_size = block_size as u64;
+
         quote! {
             #( #formats )|* => #block_size,
         }
@@ -680,7 +678,7 @@ pub fn write_source_code<P: AsRef<Path>>(vk_headers_dir: &Path, src_dir: P) {
 
     let impls = quote! {
         impl FormatExt for Format {
-            fn block_size(self) -> u8 {
+            fn block_size(self) -> DeviceSize {
                 match self {
                     #(#block_sizes)*
                     _ => panic!("Unknown format vk::Format({:?})", self.as_raw()),
@@ -814,7 +812,7 @@ pub fn write_source_code<P: AsRef<Path>>(vk_headers_dir: &Path, src_dir: P) {
     };
 
     let source_code = quote! {
-        use ash::vk::{Format, ImageAspectFlags};
+        use ash::vk::{Format, ImageAspectFlags, DeviceSize};
 
         #format_ext
 

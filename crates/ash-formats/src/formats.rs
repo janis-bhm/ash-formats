@@ -1,8 +1,8 @@
-use ash::vk::{Format, ImageAspectFlags};
+use ash::vk::{DeviceSize, Format, ImageAspectFlags};
 pub trait FormatExt {
     #[doc = r" The size of a block of the format in bytes. For uncompressed"]
     #[doc = r" formats, this is the size of a texel."]
-    fn block_size(self) -> u8;
+    fn block_size(self) -> DeviceSize;
     #[doc = r" The dimensions of a block of the format in texels. For"]
     #[doc = r" uncompressed formats, this is always (1, 1, 1)."]
     fn block_extent(self) -> (u8, u8, u8);
@@ -210,9 +210,45 @@ pub struct Plane {
     pub compatible_format: Format,
 }
 impl FormatExt for Format {
-    fn block_size(self) -> u8 {
+    fn block_size(self) -> DeviceSize {
         match self {
-            Self::R32G32B32_UINT | Self::R32G32B32_SINT | Self::R32G32B32_SFLOAT => 12u8,
+            Self::R4G4_UNORM_PACK8
+            | Self::A8_UNORM_KHR
+            | Self::R8_UNORM
+            | Self::R8_SNORM
+            | Self::R8_USCALED
+            | Self::R8_SSCALED
+            | Self::R8_UINT
+            | Self::R8_SINT
+            | Self::R8_SRGB
+            | Self::S8_UINT => 1u64,
+            Self::R4G4B4A4_UNORM_PACK16
+            | Self::B4G4R4A4_UNORM_PACK16
+            | Self::R5G6B5_UNORM_PACK16
+            | Self::B5G6R5_UNORM_PACK16
+            | Self::R5G5B5A1_UNORM_PACK16
+            | Self::B5G5R5A1_UNORM_PACK16
+            | Self::A1R5G5B5_UNORM_PACK16
+            | Self::A1B5G5R5_UNORM_PACK16_KHR
+            | Self::R8G8_UNORM
+            | Self::R8G8_SNORM
+            | Self::R8G8_USCALED
+            | Self::R8G8_SSCALED
+            | Self::R8G8_UINT
+            | Self::R8G8_SINT
+            | Self::R8G8_SRGB
+            | Self::R16_UNORM
+            | Self::R16_SNORM
+            | Self::R16_USCALED
+            | Self::R16_SSCALED
+            | Self::R16_UINT
+            | Self::R16_SINT
+            | Self::R16_SFLOAT
+            | Self::D16_UNORM
+            | Self::R10X6_UNORM_PACK16
+            | Self::R12X4_UNORM_PACK16
+            | Self::A4R4G4B4_UNORM_PACK16
+            | Self::A4B4G4R4_UNORM_PACK16 => 2u64,
             Self::R8G8B8_UNORM
             | Self::R8G8B8_SNORM
             | Self::R8G8B8_USCALED
@@ -233,7 +269,128 @@ impl FormatExt for Format {
             | Self::G8_B8_R8_3PLANE_422_UNORM
             | Self::G8_B8R8_2PLANE_422_UNORM
             | Self::G8_B8_R8_3PLANE_444_UNORM
-            | Self::G8_B8R8_2PLANE_444_UNORM => 3u8,
+            | Self::G8_B8R8_2PLANE_444_UNORM => 3u64,
+            Self::R8G8B8A8_UNORM
+            | Self::R8G8B8A8_SNORM
+            | Self::R8G8B8A8_USCALED
+            | Self::R8G8B8A8_SSCALED
+            | Self::R8G8B8A8_UINT
+            | Self::R8G8B8A8_SINT
+            | Self::R8G8B8A8_SRGB
+            | Self::B8G8R8A8_UNORM
+            | Self::B8G8R8A8_SNORM
+            | Self::B8G8R8A8_USCALED
+            | Self::B8G8R8A8_SSCALED
+            | Self::B8G8R8A8_UINT
+            | Self::B8G8R8A8_SINT
+            | Self::B8G8R8A8_SRGB
+            | Self::A8B8G8R8_UNORM_PACK32
+            | Self::A8B8G8R8_SNORM_PACK32
+            | Self::A8B8G8R8_USCALED_PACK32
+            | Self::A8B8G8R8_SSCALED_PACK32
+            | Self::A8B8G8R8_UINT_PACK32
+            | Self::A8B8G8R8_SINT_PACK32
+            | Self::A8B8G8R8_SRGB_PACK32
+            | Self::A2R10G10B10_UNORM_PACK32
+            | Self::A2R10G10B10_SNORM_PACK32
+            | Self::A2R10G10B10_USCALED_PACK32
+            | Self::A2R10G10B10_SSCALED_PACK32
+            | Self::A2R10G10B10_UINT_PACK32
+            | Self::A2R10G10B10_SINT_PACK32
+            | Self::A2B10G10R10_UNORM_PACK32
+            | Self::A2B10G10R10_SNORM_PACK32
+            | Self::A2B10G10R10_USCALED_PACK32
+            | Self::A2B10G10R10_SSCALED_PACK32
+            | Self::A2B10G10R10_UINT_PACK32
+            | Self::A2B10G10R10_SINT_PACK32
+            | Self::R16G16_UNORM
+            | Self::R16G16_SNORM
+            | Self::R16G16_USCALED
+            | Self::R16G16_SSCALED
+            | Self::R16G16_UINT
+            | Self::R16G16_SINT
+            | Self::R16G16_SFLOAT
+            | Self::R32_UINT
+            | Self::R32_SINT
+            | Self::R32_SFLOAT
+            | Self::B10G11R11_UFLOAT_PACK32
+            | Self::E5B9G9R9_UFLOAT_PACK32
+            | Self::X8_D24_UNORM_PACK32
+            | Self::D32_SFLOAT
+            | Self::D24_UNORM_S8_UINT
+            | Self::G8B8G8R8_422_UNORM
+            | Self::B8G8R8G8_422_UNORM
+            | Self::R10X6G10X6_UNORM_2PACK16
+            | Self::R12X4G12X4_UNORM_2PACK16
+            | Self::R16G16_S10_5_NV => 4u64,
+            Self::D32_SFLOAT_S8_UINT => 5u64,
+            Self::R16G16B16_UNORM
+            | Self::R16G16B16_SNORM
+            | Self::R16G16B16_USCALED
+            | Self::R16G16B16_SSCALED
+            | Self::R16G16B16_UINT
+            | Self::R16G16B16_SINT
+            | Self::R16G16B16_SFLOAT
+            | Self::G10X6_B10X6_R10X6_3PLANE_420_UNORM_3PACK16
+            | Self::G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16
+            | Self::G10X6_B10X6_R10X6_3PLANE_422_UNORM_3PACK16
+            | Self::G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16
+            | Self::G10X6_B10X6_R10X6_3PLANE_444_UNORM_3PACK16
+            | Self::G12X4_B12X4_R12X4_3PLANE_420_UNORM_3PACK16
+            | Self::G12X4_B12X4R12X4_2PLANE_420_UNORM_3PACK16
+            | Self::G12X4_B12X4_R12X4_3PLANE_422_UNORM_3PACK16
+            | Self::G12X4_B12X4R12X4_2PLANE_422_UNORM_3PACK16
+            | Self::G12X4_B12X4_R12X4_3PLANE_444_UNORM_3PACK16
+            | Self::G16_B16_R16_3PLANE_420_UNORM
+            | Self::G16_B16R16_2PLANE_420_UNORM
+            | Self::G16_B16_R16_3PLANE_422_UNORM
+            | Self::G16_B16R16_2PLANE_422_UNORM
+            | Self::G16_B16_R16_3PLANE_444_UNORM
+            | Self::G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16
+            | Self::G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16
+            | Self::G16_B16R16_2PLANE_444_UNORM => 6u64,
+            Self::R16G16B16A16_UNORM
+            | Self::R16G16B16A16_SNORM
+            | Self::R16G16B16A16_USCALED
+            | Self::R16G16B16A16_SSCALED
+            | Self::R16G16B16A16_UINT
+            | Self::R16G16B16A16_SINT
+            | Self::R16G16B16A16_SFLOAT
+            | Self::R32G32_UINT
+            | Self::R32G32_SINT
+            | Self::R32G32_SFLOAT
+            | Self::R64_UINT
+            | Self::R64_SINT
+            | Self::R64_SFLOAT
+            | Self::BC1_RGB_UNORM_BLOCK
+            | Self::BC1_RGB_SRGB_BLOCK
+            | Self::BC1_RGBA_UNORM_BLOCK
+            | Self::BC1_RGBA_SRGB_BLOCK
+            | Self::BC4_UNORM_BLOCK
+            | Self::BC4_SNORM_BLOCK
+            | Self::ETC2_R8G8B8_UNORM_BLOCK
+            | Self::ETC2_R8G8B8_SRGB_BLOCK
+            | Self::ETC2_R8G8B8A1_UNORM_BLOCK
+            | Self::ETC2_R8G8B8A1_SRGB_BLOCK
+            | Self::EAC_R11_UNORM_BLOCK
+            | Self::EAC_R11_SNORM_BLOCK
+            | Self::R10X6G10X6B10X6A10X6_UNORM_4PACK16
+            | Self::G10X6B10X6G10X6R10X6_422_UNORM_4PACK16
+            | Self::B10X6G10X6R10X6G10X6_422_UNORM_4PACK16
+            | Self::R12X4G12X4B12X4A12X4_UNORM_4PACK16
+            | Self::G12X4B12X4G12X4R12X4_422_UNORM_4PACK16
+            | Self::B12X4G12X4R12X4G12X4_422_UNORM_4PACK16
+            | Self::G16B16G16R16_422_UNORM
+            | Self::B16G16R16G16_422_UNORM
+            | Self::PVRTC1_2BPP_UNORM_BLOCK_IMG
+            | Self::PVRTC1_4BPP_UNORM_BLOCK_IMG
+            | Self::PVRTC2_2BPP_UNORM_BLOCK_IMG
+            | Self::PVRTC2_4BPP_UNORM_BLOCK_IMG
+            | Self::PVRTC1_2BPP_SRGB_BLOCK_IMG
+            | Self::PVRTC1_4BPP_SRGB_BLOCK_IMG
+            | Self::PVRTC2_2BPP_SRGB_BLOCK_IMG
+            | Self::PVRTC2_4BPP_SRGB_BLOCK_IMG => 8u64,
+            Self::R32G32B32_UINT | Self::R32G32B32_SINT | Self::R32G32B32_SFLOAT => 12u64,
             Self::R32G32B32A32_UINT
             | Self::R32G32B32A32_SINT
             | Self::R32G32B32A32_SFLOAT
@@ -295,171 +452,22 @@ impl FormatExt for Format {
             | Self::ASTC_10X8_SFLOAT_BLOCK
             | Self::ASTC_10X10_SFLOAT_BLOCK
             | Self::ASTC_12X10_SFLOAT_BLOCK
-            | Self::ASTC_12X12_SFLOAT_BLOCK => 16u8,
-            Self::D32_SFLOAT_S8_UINT => 5u8,
-            Self::R4G4_UNORM_PACK8
-            | Self::A8_UNORM_KHR
-            | Self::R8_UNORM
-            | Self::R8_SNORM
-            | Self::R8_USCALED
-            | Self::R8_SSCALED
-            | Self::R8_UINT
-            | Self::R8_SINT
-            | Self::R8_SRGB
-            | Self::S8_UINT => 1u8,
-            Self::R16G16B16_UNORM
-            | Self::R16G16B16_SNORM
-            | Self::R16G16B16_USCALED
-            | Self::R16G16B16_SSCALED
-            | Self::R16G16B16_UINT
-            | Self::R16G16B16_SINT
-            | Self::R16G16B16_SFLOAT
-            | Self::G10X6_B10X6_R10X6_3PLANE_420_UNORM_3PACK16
-            | Self::G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16
-            | Self::G10X6_B10X6_R10X6_3PLANE_422_UNORM_3PACK16
-            | Self::G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16
-            | Self::G10X6_B10X6_R10X6_3PLANE_444_UNORM_3PACK16
-            | Self::G12X4_B12X4_R12X4_3PLANE_420_UNORM_3PACK16
-            | Self::G12X4_B12X4R12X4_2PLANE_420_UNORM_3PACK16
-            | Self::G12X4_B12X4_R12X4_3PLANE_422_UNORM_3PACK16
-            | Self::G12X4_B12X4R12X4_2PLANE_422_UNORM_3PACK16
-            | Self::G12X4_B12X4_R12X4_3PLANE_444_UNORM_3PACK16
-            | Self::G16_B16_R16_3PLANE_420_UNORM
-            | Self::G16_B16R16_2PLANE_420_UNORM
-            | Self::G16_B16_R16_3PLANE_422_UNORM
-            | Self::G16_B16R16_2PLANE_422_UNORM
-            | Self::G16_B16_R16_3PLANE_444_UNORM
-            | Self::G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16
-            | Self::G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16
-            | Self::G16_B16R16_2PLANE_444_UNORM => 6u8,
-            Self::R4G4B4A4_UNORM_PACK16
-            | Self::B4G4R4A4_UNORM_PACK16
-            | Self::R5G6B5_UNORM_PACK16
-            | Self::B5G6R5_UNORM_PACK16
-            | Self::R5G5B5A1_UNORM_PACK16
-            | Self::B5G5R5A1_UNORM_PACK16
-            | Self::A1R5G5B5_UNORM_PACK16
-            | Self::A1B5G5R5_UNORM_PACK16_KHR
-            | Self::R8G8_UNORM
-            | Self::R8G8_SNORM
-            | Self::R8G8_USCALED
-            | Self::R8G8_SSCALED
-            | Self::R8G8_UINT
-            | Self::R8G8_SINT
-            | Self::R8G8_SRGB
-            | Self::R16_UNORM
-            | Self::R16_SNORM
-            | Self::R16_USCALED
-            | Self::R16_SSCALED
-            | Self::R16_UINT
-            | Self::R16_SINT
-            | Self::R16_SFLOAT
-            | Self::D16_UNORM
-            | Self::R10X6_UNORM_PACK16
-            | Self::R12X4_UNORM_PACK16
-            | Self::A4R4G4B4_UNORM_PACK16
-            | Self::A4B4G4R4_UNORM_PACK16 => 2u8,
-            Self::R64G64B64A64_UINT | Self::R64G64B64A64_SINT | Self::R64G64B64A64_SFLOAT => 32u8,
-            Self::R8G8B8A8_UNORM
-            | Self::R8G8B8A8_SNORM
-            | Self::R8G8B8A8_USCALED
-            | Self::R8G8B8A8_SSCALED
-            | Self::R8G8B8A8_UINT
-            | Self::R8G8B8A8_SINT
-            | Self::R8G8B8A8_SRGB
-            | Self::B8G8R8A8_UNORM
-            | Self::B8G8R8A8_SNORM
-            | Self::B8G8R8A8_USCALED
-            | Self::B8G8R8A8_SSCALED
-            | Self::B8G8R8A8_UINT
-            | Self::B8G8R8A8_SINT
-            | Self::B8G8R8A8_SRGB
-            | Self::A8B8G8R8_UNORM_PACK32
-            | Self::A8B8G8R8_SNORM_PACK32
-            | Self::A8B8G8R8_USCALED_PACK32
-            | Self::A8B8G8R8_SSCALED_PACK32
-            | Self::A8B8G8R8_UINT_PACK32
-            | Self::A8B8G8R8_SINT_PACK32
-            | Self::A8B8G8R8_SRGB_PACK32
-            | Self::A2R10G10B10_UNORM_PACK32
-            | Self::A2R10G10B10_SNORM_PACK32
-            | Self::A2R10G10B10_USCALED_PACK32
-            | Self::A2R10G10B10_SSCALED_PACK32
-            | Self::A2R10G10B10_UINT_PACK32
-            | Self::A2R10G10B10_SINT_PACK32
-            | Self::A2B10G10R10_UNORM_PACK32
-            | Self::A2B10G10R10_SNORM_PACK32
-            | Self::A2B10G10R10_USCALED_PACK32
-            | Self::A2B10G10R10_SSCALED_PACK32
-            | Self::A2B10G10R10_UINT_PACK32
-            | Self::A2B10G10R10_SINT_PACK32
-            | Self::R16G16_UNORM
-            | Self::R16G16_SNORM
-            | Self::R16G16_USCALED
-            | Self::R16G16_SSCALED
-            | Self::R16G16_UINT
-            | Self::R16G16_SINT
-            | Self::R16G16_SFLOAT
-            | Self::R32_UINT
-            | Self::R32_SINT
-            | Self::R32_SFLOAT
-            | Self::B10G11R11_UFLOAT_PACK32
-            | Self::E5B9G9R9_UFLOAT_PACK32
-            | Self::X8_D24_UNORM_PACK32
-            | Self::D32_SFLOAT
-            | Self::D24_UNORM_S8_UINT
-            | Self::G8B8G8R8_422_UNORM
-            | Self::B8G8R8G8_422_UNORM
-            | Self::R10X6G10X6_UNORM_2PACK16
-            | Self::R12X4G12X4_UNORM_2PACK16
-            | Self::R16G16_S10_5_NV => 4u8,
-            Self::R16G16B16A16_UNORM
-            | Self::R16G16B16A16_SNORM
-            | Self::R16G16B16A16_USCALED
-            | Self::R16G16B16A16_SSCALED
-            | Self::R16G16B16A16_UINT
-            | Self::R16G16B16A16_SINT
-            | Self::R16G16B16A16_SFLOAT
-            | Self::R32G32_UINT
-            | Self::R32G32_SINT
-            | Self::R32G32_SFLOAT
-            | Self::R64_UINT
-            | Self::R64_SINT
-            | Self::R64_SFLOAT
-            | Self::BC1_RGB_UNORM_BLOCK
-            | Self::BC1_RGB_SRGB_BLOCK
-            | Self::BC1_RGBA_UNORM_BLOCK
-            | Self::BC1_RGBA_SRGB_BLOCK
-            | Self::BC4_UNORM_BLOCK
-            | Self::BC4_SNORM_BLOCK
-            | Self::ETC2_R8G8B8_UNORM_BLOCK
-            | Self::ETC2_R8G8B8_SRGB_BLOCK
-            | Self::ETC2_R8G8B8A1_UNORM_BLOCK
-            | Self::ETC2_R8G8B8A1_SRGB_BLOCK
-            | Self::EAC_R11_UNORM_BLOCK
-            | Self::EAC_R11_SNORM_BLOCK
-            | Self::R10X6G10X6B10X6A10X6_UNORM_4PACK16
-            | Self::G10X6B10X6G10X6R10X6_422_UNORM_4PACK16
-            | Self::B10X6G10X6R10X6G10X6_422_UNORM_4PACK16
-            | Self::R12X4G12X4B12X4A12X4_UNORM_4PACK16
-            | Self::G12X4B12X4G12X4R12X4_422_UNORM_4PACK16
-            | Self::B12X4G12X4R12X4G12X4_422_UNORM_4PACK16
-            | Self::G16B16G16R16_422_UNORM
-            | Self::B16G16R16G16_422_UNORM
-            | Self::PVRTC1_2BPP_UNORM_BLOCK_IMG
-            | Self::PVRTC1_4BPP_UNORM_BLOCK_IMG
-            | Self::PVRTC2_2BPP_UNORM_BLOCK_IMG
-            | Self::PVRTC2_4BPP_UNORM_BLOCK_IMG
-            | Self::PVRTC1_2BPP_SRGB_BLOCK_IMG
-            | Self::PVRTC1_4BPP_SRGB_BLOCK_IMG
-            | Self::PVRTC2_2BPP_SRGB_BLOCK_IMG
-            | Self::PVRTC2_4BPP_SRGB_BLOCK_IMG => 8u8,
-            Self::R64G64B64_UINT | Self::R64G64B64_SINT | Self::R64G64B64_SFLOAT => 24u8,
+            | Self::ASTC_12X12_SFLOAT_BLOCK => 16u64,
+            Self::R64G64B64_UINT | Self::R64G64B64_SINT | Self::R64G64B64_SFLOAT => 24u64,
+            Self::R64G64B64A64_UINT | Self::R64G64B64A64_SINT | Self::R64G64B64A64_SFLOAT => 32u64,
             _ => panic!("Unknown format vk::Format({:?})", self.as_raw()),
         }
     }
     fn block_extent(self) -> (u8, u8, u8) {
         match self {
+            Self::G8B8G8R8_422_UNORM
+            | Self::B8G8R8G8_422_UNORM
+            | Self::G10X6B10X6G10X6R10X6_422_UNORM_4PACK16
+            | Self::B10X6G10X6R10X6G10X6_422_UNORM_4PACK16
+            | Self::G12X4B12X4G12X4R12X4_422_UNORM_4PACK16
+            | Self::B12X4G12X4R12X4G12X4_422_UNORM_4PACK16
+            | Self::G16B16G16R16_422_UNORM
+            | Self::B16G16R16G16_422_UNORM => (2u8, 1u8, 1u8),
             Self::BC1_RGB_UNORM_BLOCK
             | Self::BC1_RGB_SRGB_BLOCK
             | Self::BC1_RGBA_UNORM_BLOCK
@@ -493,50 +501,15 @@ impl FormatExt for Format {
             | Self::PVRTC1_4BPP_SRGB_BLOCK_IMG
             | Self::PVRTC2_4BPP_SRGB_BLOCK_IMG
             | Self::ASTC_4X4_SFLOAT_BLOCK => (4u8, 4u8, 1u8),
-            Self::ASTC_8X5_UNORM_BLOCK
-            | Self::ASTC_8X5_SRGB_BLOCK
-            | Self::ASTC_8X5_SFLOAT_BLOCK => (8u8, 5u8, 1u8),
-            Self::ASTC_6X5_UNORM_BLOCK
-            | Self::ASTC_6X5_SRGB_BLOCK
-            | Self::ASTC_6X5_SFLOAT_BLOCK => (6u8, 5u8, 1u8),
-            Self::ASTC_10X10_UNORM_BLOCK
-            | Self::ASTC_10X10_SRGB_BLOCK
-            | Self::ASTC_10X10_SFLOAT_BLOCK => (10u8, 10u8, 1u8),
             Self::ASTC_5X4_UNORM_BLOCK
             | Self::ASTC_5X4_SRGB_BLOCK
             | Self::ASTC_5X4_SFLOAT_BLOCK => (5u8, 4u8, 1u8),
-            Self::ASTC_12X12_UNORM_BLOCK
-            | Self::ASTC_12X12_SRGB_BLOCK
-            | Self::ASTC_12X12_SFLOAT_BLOCK => (12u8, 12u8, 1u8),
-            Self::ASTC_8X6_UNORM_BLOCK
-            | Self::ASTC_8X6_SRGB_BLOCK
-            | Self::ASTC_8X6_SFLOAT_BLOCK => (8u8, 6u8, 1u8),
-            Self::ASTC_10X5_UNORM_BLOCK
-            | Self::ASTC_10X5_SRGB_BLOCK
-            | Self::ASTC_10X5_SFLOAT_BLOCK => (10u8, 5u8, 1u8),
-            Self::ASTC_12X10_UNORM_BLOCK
-            | Self::ASTC_12X10_SRGB_BLOCK
-            | Self::ASTC_12X10_SFLOAT_BLOCK => (12u8, 10u8, 1u8),
-            Self::ASTC_8X8_UNORM_BLOCK
-            | Self::ASTC_8X8_SRGB_BLOCK
-            | Self::ASTC_8X8_SFLOAT_BLOCK => (8u8, 8u8, 1u8),
             Self::ASTC_5X5_UNORM_BLOCK
             | Self::ASTC_5X5_SRGB_BLOCK
             | Self::ASTC_5X5_SFLOAT_BLOCK => (5u8, 5u8, 1u8),
-            Self::ASTC_10X6_UNORM_BLOCK
-            | Self::ASTC_10X6_SRGB_BLOCK
-            | Self::ASTC_10X6_SFLOAT_BLOCK => (10u8, 6u8, 1u8),
-            Self::ASTC_10X8_UNORM_BLOCK
-            | Self::ASTC_10X8_SRGB_BLOCK
-            | Self::ASTC_10X8_SFLOAT_BLOCK => (10u8, 8u8, 1u8),
-            Self::G8B8G8R8_422_UNORM
-            | Self::B8G8R8G8_422_UNORM
-            | Self::G10X6B10X6G10X6R10X6_422_UNORM_4PACK16
-            | Self::B10X6G10X6R10X6G10X6_422_UNORM_4PACK16
-            | Self::G12X4B12X4G12X4R12X4_422_UNORM_4PACK16
-            | Self::B12X4G12X4R12X4G12X4_422_UNORM_4PACK16
-            | Self::G16B16G16R16_422_UNORM
-            | Self::B16G16R16G16_422_UNORM => (2u8, 1u8, 1u8),
+            Self::ASTC_6X5_UNORM_BLOCK
+            | Self::ASTC_6X5_SRGB_BLOCK
+            | Self::ASTC_6X5_SFLOAT_BLOCK => (6u8, 5u8, 1u8),
             Self::ASTC_6X6_UNORM_BLOCK
             | Self::ASTC_6X6_SRGB_BLOCK
             | Self::ASTC_6X6_SFLOAT_BLOCK => (6u8, 6u8, 1u8),
@@ -544,6 +517,33 @@ impl FormatExt for Format {
             | Self::PVRTC2_2BPP_UNORM_BLOCK_IMG
             | Self::PVRTC1_2BPP_SRGB_BLOCK_IMG
             | Self::PVRTC2_2BPP_SRGB_BLOCK_IMG => (8u8, 4u8, 1u8),
+            Self::ASTC_8X5_UNORM_BLOCK
+            | Self::ASTC_8X5_SRGB_BLOCK
+            | Self::ASTC_8X5_SFLOAT_BLOCK => (8u8, 5u8, 1u8),
+            Self::ASTC_8X6_UNORM_BLOCK
+            | Self::ASTC_8X6_SRGB_BLOCK
+            | Self::ASTC_8X6_SFLOAT_BLOCK => (8u8, 6u8, 1u8),
+            Self::ASTC_8X8_UNORM_BLOCK
+            | Self::ASTC_8X8_SRGB_BLOCK
+            | Self::ASTC_8X8_SFLOAT_BLOCK => (8u8, 8u8, 1u8),
+            Self::ASTC_10X5_UNORM_BLOCK
+            | Self::ASTC_10X5_SRGB_BLOCK
+            | Self::ASTC_10X5_SFLOAT_BLOCK => (10u8, 5u8, 1u8),
+            Self::ASTC_10X6_UNORM_BLOCK
+            | Self::ASTC_10X6_SRGB_BLOCK
+            | Self::ASTC_10X6_SFLOAT_BLOCK => (10u8, 6u8, 1u8),
+            Self::ASTC_10X8_UNORM_BLOCK
+            | Self::ASTC_10X8_SRGB_BLOCK
+            | Self::ASTC_10X8_SFLOAT_BLOCK => (10u8, 8u8, 1u8),
+            Self::ASTC_10X10_UNORM_BLOCK
+            | Self::ASTC_10X10_SRGB_BLOCK
+            | Self::ASTC_10X10_SFLOAT_BLOCK => (10u8, 10u8, 1u8),
+            Self::ASTC_12X10_UNORM_BLOCK
+            | Self::ASTC_12X10_SRGB_BLOCK
+            | Self::ASTC_12X10_SFLOAT_BLOCK => (12u8, 10u8, 1u8),
+            Self::ASTC_12X12_UNORM_BLOCK
+            | Self::ASTC_12X12_SRGB_BLOCK
+            | Self::ASTC_12X12_SFLOAT_BLOCK => (12u8, 12u8, 1u8),
             _ => (1u8, 1u8, 1u8),
         }
     }
@@ -730,42 +730,6 @@ impl FormatExt for Format {
             | Self::A4R4G4B4_UNORM_PACK16
             | Self::A4B4G4R4_UNORM_PACK16
             | Self::R16G16_S10_5_NV => 1u8,
-            Self::ASTC_10X5_UNORM_BLOCK
-            | Self::ASTC_10X5_SRGB_BLOCK
-            | Self::ASTC_10X5_SFLOAT_BLOCK => 50u8,
-            Self::ASTC_10X6_UNORM_BLOCK
-            | Self::ASTC_10X6_SRGB_BLOCK
-            | Self::ASTC_10X6_SFLOAT_BLOCK => 60u8,
-            Self::ASTC_8X5_UNORM_BLOCK
-            | Self::ASTC_8X5_SRGB_BLOCK
-            | Self::ASTC_8X5_SFLOAT_BLOCK => 40u8,
-            Self::ASTC_6X6_UNORM_BLOCK
-            | Self::ASTC_6X6_SRGB_BLOCK
-            | Self::ASTC_6X6_SFLOAT_BLOCK => 36u8,
-            Self::ASTC_10X10_UNORM_BLOCK
-            | Self::ASTC_10X10_SRGB_BLOCK
-            | Self::ASTC_10X10_SFLOAT_BLOCK => 100u8,
-            Self::ASTC_12X12_UNORM_BLOCK
-            | Self::ASTC_12X12_SRGB_BLOCK
-            | Self::ASTC_12X12_SFLOAT_BLOCK => 144u8,
-            Self::ASTC_10X8_UNORM_BLOCK
-            | Self::ASTC_10X8_SRGB_BLOCK
-            | Self::ASTC_10X8_SFLOAT_BLOCK => 80u8,
-            Self::ASTC_5X5_UNORM_BLOCK
-            | Self::ASTC_5X5_SRGB_BLOCK
-            | Self::ASTC_5X5_SFLOAT_BLOCK => 25u8,
-            Self::ASTC_6X5_UNORM_BLOCK
-            | Self::ASTC_6X5_SRGB_BLOCK
-            | Self::ASTC_6X5_SFLOAT_BLOCK => 30u8,
-            Self::ASTC_5X4_UNORM_BLOCK
-            | Self::ASTC_5X4_SRGB_BLOCK
-            | Self::ASTC_5X4_SFLOAT_BLOCK => 20u8,
-            Self::ASTC_8X8_UNORM_BLOCK
-            | Self::ASTC_8X8_SRGB_BLOCK
-            | Self::ASTC_8X8_SFLOAT_BLOCK => 64u8,
-            Self::ASTC_12X10_UNORM_BLOCK
-            | Self::ASTC_12X10_SRGB_BLOCK
-            | Self::ASTC_12X10_SFLOAT_BLOCK => 120u8,
             Self::BC1_RGB_UNORM_BLOCK
             | Self::BC1_RGB_SRGB_BLOCK
             | Self::BC1_RGBA_UNORM_BLOCK
@@ -795,37 +759,51 @@ impl FormatExt for Format {
             | Self::ASTC_4X4_UNORM_BLOCK
             | Self::ASTC_4X4_SRGB_BLOCK
             | Self::ASTC_4X4_SFLOAT_BLOCK => 16u8,
+            Self::ASTC_5X4_UNORM_BLOCK
+            | Self::ASTC_5X4_SRGB_BLOCK
+            | Self::ASTC_5X4_SFLOAT_BLOCK => 20u8,
+            Self::ASTC_5X5_UNORM_BLOCK
+            | Self::ASTC_5X5_SRGB_BLOCK
+            | Self::ASTC_5X5_SFLOAT_BLOCK => 25u8,
+            Self::ASTC_6X5_UNORM_BLOCK
+            | Self::ASTC_6X5_SRGB_BLOCK
+            | Self::ASTC_6X5_SFLOAT_BLOCK => 30u8,
+            Self::ASTC_6X6_UNORM_BLOCK
+            | Self::ASTC_6X6_SRGB_BLOCK
+            | Self::ASTC_6X6_SFLOAT_BLOCK => 36u8,
+            Self::ASTC_8X5_UNORM_BLOCK
+            | Self::ASTC_8X5_SRGB_BLOCK
+            | Self::ASTC_8X5_SFLOAT_BLOCK => 40u8,
             Self::ASTC_8X6_UNORM_BLOCK
             | Self::ASTC_8X6_SRGB_BLOCK
             | Self::ASTC_8X6_SFLOAT_BLOCK => 48u8,
+            Self::ASTC_10X5_UNORM_BLOCK
+            | Self::ASTC_10X5_SRGB_BLOCK
+            | Self::ASTC_10X5_SFLOAT_BLOCK => 50u8,
+            Self::ASTC_10X6_UNORM_BLOCK
+            | Self::ASTC_10X6_SRGB_BLOCK
+            | Self::ASTC_10X6_SFLOAT_BLOCK => 60u8,
+            Self::ASTC_8X8_UNORM_BLOCK
+            | Self::ASTC_8X8_SRGB_BLOCK
+            | Self::ASTC_8X8_SFLOAT_BLOCK => 64u8,
+            Self::ASTC_10X8_UNORM_BLOCK
+            | Self::ASTC_10X8_SRGB_BLOCK
+            | Self::ASTC_10X8_SFLOAT_BLOCK => 80u8,
+            Self::ASTC_10X10_UNORM_BLOCK
+            | Self::ASTC_10X10_SRGB_BLOCK
+            | Self::ASTC_10X10_SFLOAT_BLOCK => 100u8,
+            Self::ASTC_12X10_UNORM_BLOCK
+            | Self::ASTC_12X10_SRGB_BLOCK
+            | Self::ASTC_12X10_SFLOAT_BLOCK => 120u8,
+            Self::ASTC_12X12_UNORM_BLOCK
+            | Self::ASTC_12X12_SRGB_BLOCK
+            | Self::ASTC_12X12_SFLOAT_BLOCK => 144u8,
             _ => panic!("Unknown format vk::Format({:?})", self.as_raw()),
         }
     }
     fn packed(self) -> Option<u8> {
         match self {
             Self::R4G4_UNORM_PACK8 => Some(8u8),
-            Self::A8B8G8R8_UNORM_PACK32
-            | Self::A8B8G8R8_SNORM_PACK32
-            | Self::A8B8G8R8_USCALED_PACK32
-            | Self::A8B8G8R8_SSCALED_PACK32
-            | Self::A8B8G8R8_UINT_PACK32
-            | Self::A8B8G8R8_SINT_PACK32
-            | Self::A8B8G8R8_SRGB_PACK32
-            | Self::A2R10G10B10_UNORM_PACK32
-            | Self::A2R10G10B10_SNORM_PACK32
-            | Self::A2R10G10B10_USCALED_PACK32
-            | Self::A2R10G10B10_SSCALED_PACK32
-            | Self::A2R10G10B10_UINT_PACK32
-            | Self::A2R10G10B10_SINT_PACK32
-            | Self::A2B10G10R10_UNORM_PACK32
-            | Self::A2B10G10R10_SNORM_PACK32
-            | Self::A2B10G10R10_USCALED_PACK32
-            | Self::A2B10G10R10_SSCALED_PACK32
-            | Self::A2B10G10R10_UINT_PACK32
-            | Self::A2B10G10R10_SINT_PACK32
-            | Self::B10G11R11_UFLOAT_PACK32
-            | Self::E5B9G9R9_UFLOAT_PACK32
-            | Self::X8_D24_UNORM_PACK32 => Some(32u8),
             Self::R4G4B4A4_UNORM_PACK16
             | Self::B4G4R4A4_UNORM_PACK16
             | Self::R5G6B5_UNORM_PACK16
@@ -858,6 +836,28 @@ impl FormatExt for Format {
             | Self::G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16
             | Self::A4R4G4B4_UNORM_PACK16
             | Self::A4B4G4R4_UNORM_PACK16 => Some(16u8),
+            Self::A8B8G8R8_UNORM_PACK32
+            | Self::A8B8G8R8_SNORM_PACK32
+            | Self::A8B8G8R8_USCALED_PACK32
+            | Self::A8B8G8R8_SSCALED_PACK32
+            | Self::A8B8G8R8_UINT_PACK32
+            | Self::A8B8G8R8_SINT_PACK32
+            | Self::A8B8G8R8_SRGB_PACK32
+            | Self::A2R10G10B10_UNORM_PACK32
+            | Self::A2R10G10B10_SNORM_PACK32
+            | Self::A2R10G10B10_USCALED_PACK32
+            | Self::A2R10G10B10_SSCALED_PACK32
+            | Self::A2R10G10B10_UINT_PACK32
+            | Self::A2R10G10B10_SINT_PACK32
+            | Self::A2B10G10R10_UNORM_PACK32
+            | Self::A2B10G10R10_SNORM_PACK32
+            | Self::A2B10G10R10_USCALED_PACK32
+            | Self::A2B10G10R10_SSCALED_PACK32
+            | Self::A2B10G10R10_UINT_PACK32
+            | Self::A2B10G10R10_SINT_PACK32
+            | Self::B10G11R11_UFLOAT_PACK32
+            | Self::E5B9G9R9_UFLOAT_PACK32
+            | Self::X8_D24_UNORM_PACK32 => Some(32u8),
             _ => None,
         }
     }
@@ -1120,16 +1120,6 @@ impl FormatExt for Format {
             | Self::G12X4_B12X4R12X4_2PLANE_420_UNORM_3PACK16
             | Self::G16_B16_R16_3PLANE_420_UNORM
             | Self::G16_B16R16_2PLANE_420_UNORM => Some(Chroma::Chroma420),
-            Self::G8_B8_R8_3PLANE_444_UNORM
-            | Self::R10X6G10X6B10X6A10X6_UNORM_4PACK16
-            | Self::G10X6_B10X6_R10X6_3PLANE_444_UNORM_3PACK16
-            | Self::R12X4G12X4B12X4A12X4_UNORM_4PACK16
-            | Self::G12X4_B12X4_R12X4_3PLANE_444_UNORM_3PACK16
-            | Self::G16_B16_R16_3PLANE_444_UNORM
-            | Self::G8_B8R8_2PLANE_444_UNORM
-            | Self::G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16
-            | Self::G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16
-            | Self::G16_B16R16_2PLANE_444_UNORM => Some(Chroma::Chroma444),
             Self::G8B8G8R8_422_UNORM
             | Self::B8G8R8G8_422_UNORM
             | Self::G8_B8_R8_3PLANE_422_UNORM
@@ -1146,37 +1136,47 @@ impl FormatExt for Format {
             | Self::B16G16R16G16_422_UNORM
             | Self::G16_B16_R16_3PLANE_422_UNORM
             | Self::G16_B16R16_2PLANE_422_UNORM => Some(Chroma::Chroma422),
+            Self::G8_B8_R8_3PLANE_444_UNORM
+            | Self::R10X6G10X6B10X6A10X6_UNORM_4PACK16
+            | Self::G10X6_B10X6_R10X6_3PLANE_444_UNORM_3PACK16
+            | Self::R12X4G12X4B12X4A12X4_UNORM_4PACK16
+            | Self::G12X4_B12X4_R12X4_3PLANE_444_UNORM_3PACK16
+            | Self::G16_B16_R16_3PLANE_444_UNORM
+            | Self::G8_B8R8_2PLANE_444_UNORM
+            | Self::G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16
+            | Self::G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16
+            | Self::G16_B16R16_2PLANE_444_UNORM => Some(Chroma::Chroma444),
             _ => None,
         }
     }
     fn compression(self) -> Option<Compression> {
         match self {
+            Self::BC1_RGB_UNORM_BLOCK
+            | Self::BC1_RGB_SRGB_BLOCK
+            | Self::BC1_RGBA_UNORM_BLOCK
+            | Self::BC1_RGBA_SRGB_BLOCK
+            | Self::BC2_UNORM_BLOCK
+            | Self::BC2_SRGB_BLOCK
+            | Self::BC3_UNORM_BLOCK
+            | Self::BC3_SRGB_BLOCK
+            | Self::BC4_UNORM_BLOCK
+            | Self::BC4_SNORM_BLOCK
+            | Self::BC5_UNORM_BLOCK
+            | Self::BC5_SNORM_BLOCK
+            | Self::BC6H_UFLOAT_BLOCK
+            | Self::BC6H_SFLOAT_BLOCK
+            | Self::BC7_UNORM_BLOCK
+            | Self::BC7_SRGB_BLOCK => Some(Compression::Bc),
+            Self::ETC2_R8G8B8_UNORM_BLOCK
+            | Self::ETC2_R8G8B8_SRGB_BLOCK
+            | Self::ETC2_R8G8B8A1_UNORM_BLOCK
+            | Self::ETC2_R8G8B8A1_SRGB_BLOCK
+            | Self::ETC2_R8G8B8A8_UNORM_BLOCK
+            | Self::ETC2_R8G8B8A8_SRGB_BLOCK => Some(Compression::Etc2),
             Self::EAC_R11_UNORM_BLOCK
             | Self::EAC_R11_SNORM_BLOCK
             | Self::EAC_R11G11_UNORM_BLOCK
             | Self::EAC_R11G11_SNORM_BLOCK => Some(Compression::Eac),
-            Self::PVRTC1_2BPP_UNORM_BLOCK_IMG
-            | Self::PVRTC1_4BPP_UNORM_BLOCK_IMG
-            | Self::PVRTC2_2BPP_UNORM_BLOCK_IMG
-            | Self::PVRTC2_4BPP_UNORM_BLOCK_IMG
-            | Self::PVRTC1_2BPP_SRGB_BLOCK_IMG
-            | Self::PVRTC1_4BPP_SRGB_BLOCK_IMG
-            | Self::PVRTC2_2BPP_SRGB_BLOCK_IMG
-            | Self::PVRTC2_4BPP_SRGB_BLOCK_IMG => Some(Compression::Pvrtc),
-            Self::ASTC_4X4_SFLOAT_BLOCK
-            | Self::ASTC_5X4_SFLOAT_BLOCK
-            | Self::ASTC_5X5_SFLOAT_BLOCK
-            | Self::ASTC_6X5_SFLOAT_BLOCK
-            | Self::ASTC_6X6_SFLOAT_BLOCK
-            | Self::ASTC_8X5_SFLOAT_BLOCK
-            | Self::ASTC_8X6_SFLOAT_BLOCK
-            | Self::ASTC_8X8_SFLOAT_BLOCK
-            | Self::ASTC_10X5_SFLOAT_BLOCK
-            | Self::ASTC_10X6_SFLOAT_BLOCK
-            | Self::ASTC_10X8_SFLOAT_BLOCK
-            | Self::ASTC_10X10_SFLOAT_BLOCK
-            | Self::ASTC_12X10_SFLOAT_BLOCK
-            | Self::ASTC_12X12_SFLOAT_BLOCK => Some(Compression::AstcHdr),
             Self::ASTC_4X4_UNORM_BLOCK
             | Self::ASTC_4X4_SRGB_BLOCK
             | Self::ASTC_5X4_UNORM_BLOCK
@@ -1205,154 +1205,56 @@ impl FormatExt for Format {
             | Self::ASTC_12X10_SRGB_BLOCK
             | Self::ASTC_12X12_UNORM_BLOCK
             | Self::ASTC_12X12_SRGB_BLOCK => Some(Compression::AstcLdr),
-            Self::BC1_RGB_UNORM_BLOCK
-            | Self::BC1_RGB_SRGB_BLOCK
-            | Self::BC1_RGBA_UNORM_BLOCK
-            | Self::BC1_RGBA_SRGB_BLOCK
-            | Self::BC2_UNORM_BLOCK
-            | Self::BC2_SRGB_BLOCK
-            | Self::BC3_UNORM_BLOCK
-            | Self::BC3_SRGB_BLOCK
-            | Self::BC4_UNORM_BLOCK
-            | Self::BC4_SNORM_BLOCK
-            | Self::BC5_UNORM_BLOCK
-            | Self::BC5_SNORM_BLOCK
-            | Self::BC6H_UFLOAT_BLOCK
-            | Self::BC6H_SFLOAT_BLOCK
-            | Self::BC7_UNORM_BLOCK
-            | Self::BC7_SRGB_BLOCK => Some(Compression::Bc),
-            Self::ETC2_R8G8B8_UNORM_BLOCK
-            | Self::ETC2_R8G8B8_SRGB_BLOCK
-            | Self::ETC2_R8G8B8A1_UNORM_BLOCK
-            | Self::ETC2_R8G8B8A1_SRGB_BLOCK
-            | Self::ETC2_R8G8B8A8_UNORM_BLOCK
-            | Self::ETC2_R8G8B8A8_SRGB_BLOCK => Some(Compression::Etc2),
+            Self::ASTC_4X4_SFLOAT_BLOCK
+            | Self::ASTC_5X4_SFLOAT_BLOCK
+            | Self::ASTC_5X5_SFLOAT_BLOCK
+            | Self::ASTC_6X5_SFLOAT_BLOCK
+            | Self::ASTC_6X6_SFLOAT_BLOCK
+            | Self::ASTC_8X5_SFLOAT_BLOCK
+            | Self::ASTC_8X6_SFLOAT_BLOCK
+            | Self::ASTC_8X8_SFLOAT_BLOCK
+            | Self::ASTC_10X5_SFLOAT_BLOCK
+            | Self::ASTC_10X6_SFLOAT_BLOCK
+            | Self::ASTC_10X8_SFLOAT_BLOCK
+            | Self::ASTC_10X10_SFLOAT_BLOCK
+            | Self::ASTC_12X10_SFLOAT_BLOCK
+            | Self::ASTC_12X12_SFLOAT_BLOCK => Some(Compression::AstcHdr),
+            Self::PVRTC1_2BPP_UNORM_BLOCK_IMG
+            | Self::PVRTC1_4BPP_UNORM_BLOCK_IMG
+            | Self::PVRTC2_2BPP_UNORM_BLOCK_IMG
+            | Self::PVRTC2_4BPP_UNORM_BLOCK_IMG
+            | Self::PVRTC1_2BPP_SRGB_BLOCK_IMG
+            | Self::PVRTC1_4BPP_SRGB_BLOCK_IMG
+            | Self::PVRTC2_2BPP_SRGB_BLOCK_IMG
+            | Self::PVRTC2_4BPP_SRGB_BLOCK_IMG => Some(Compression::Pvrtc),
             _ => None,
         }
     }
     fn components(self) -> &'static [Component] {
         match self {
-            Self::B10X6G10X6R10X6G10X6_422_UNORM_4PACK16 => &[
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R32_UINT => &[Component {
+            Self::R8_UINT => &[Component {
                 name: ComponentName::R,
                 numeric_format: NumericFormat::UInt,
-                bits: 32u8,
+                bits: 8u8,
                 plane_index: None,
             }],
-            Self::B16G16R16G16_422_UNORM => &[
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 16u8,
-                    plane_index: None,
-                },
+            Self::R8G8_UINT => &[
                 Component {
                     name: ComponentName::R,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R16G16B16_SNORM => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::SNorm,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::SNorm,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::SNorm,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R8G8B8_UNORM => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UNorm,
+                    numeric_format: NumericFormat::UInt,
                     bits: 8u8,
                     plane_index: None,
                 },
                 Component {
                     name: ComponentName::G,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UNorm,
+                    numeric_format: NumericFormat::UInt,
                     bits: 8u8,
                     plane_index: None,
                 },
             ],
-            Self::R8G8B8_SRGB => &[
+            Self::R8G8B8_UINT => &[
                 Component {
                     name: ComponentName::R,
-                    numeric_format: NumericFormat::SRgb,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::SRgb,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::SRgb,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-            ],
-            Self::B8G8R8_UINT => &[
-                Component {
-                    name: ComponentName::B,
                     numeric_format: NumericFormat::UInt,
                     bits: 8u8,
                     plane_index: None,
@@ -1364,158 +1266,44 @@ impl FormatExt for Format {
                     plane_index: None,
                 },
                 Component {
-                    name: ComponentName::R,
+                    name: ComponentName::B,
                     numeric_format: NumericFormat::UInt,
                     bits: 8u8,
                     plane_index: None,
                 },
             ],
-            Self::R16G16B16_SSCALED => &[
+            Self::R8G8B8A8_UINT => &[
                 Component {
                     name: ComponentName::R,
-                    numeric_format: NumericFormat::SScaled,
-                    bits: 16u8,
+                    numeric_format: NumericFormat::UInt,
+                    bits: 8u8,
                     plane_index: None,
                 },
                 Component {
                     name: ComponentName::G,
-                    numeric_format: NumericFormat::SScaled,
-                    bits: 16u8,
+                    numeric_format: NumericFormat::UInt,
+                    bits: 8u8,
                     plane_index: None,
                 },
                 Component {
                     name: ComponentName::B,
-                    numeric_format: NumericFormat::SScaled,
-                    bits: 16u8,
+                    numeric_format: NumericFormat::UInt,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::A,
+                    numeric_format: NumericFormat::UInt,
+                    bits: 8u8,
                     plane_index: None,
                 },
             ],
-            Self::D16_UNORM => &[Component {
-                name: ComponentName::D,
-                numeric_format: NumericFormat::UNorm,
+            Self::R16_UINT => &[Component {
+                name: ComponentName::R,
+                numeric_format: NumericFormat::UInt,
                 bits: 16u8,
                 plane_index: None,
             }],
-            Self::A2B10G10R10_UINT_PACK32 => &[
-                Component {
-                    name: ComponentName::A,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 2u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-            ],
-            Self::D16_UNORM_S8_UINT => &[
-                Component {
-                    name: ComponentName::D,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::S,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R12X4G12X4B12X4A12X4_UNORM_4PACK16 => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 12u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 12u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 12u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::A,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 12u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R12X4_UNORM_PACK16 => &[Component {
-                name: ComponentName::R,
-                numeric_format: NumericFormat::UNorm,
-                bits: 12u8,
-                plane_index: None,
-            }],
-            Self::A8B8G8R8_UNORM_PACK32 => &[
-                Component {
-                    name: ComponentName::A,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-            ],
-            Self::G16_B16R16_2PLANE_420_UNORM
-            | Self::G16_B16R16_2PLANE_422_UNORM
-            | Self::G16_B16R16_2PLANE_444_UNORM => &[
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 16u8,
-                    plane_index: Some(0u8),
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 16u8,
-                    plane_index: Some(1u8),
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 16u8,
-                    plane_index: Some(1u8),
-                },
-            ],
             Self::R16G16_UINT => &[
                 Component {
                     name: ComponentName::R,
@@ -1530,28 +1318,124 @@ impl FormatExt for Format {
                     plane_index: None,
                 },
             ],
-            Self::G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16
-            | Self::G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16
-            | Self::G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16 => &[
+            Self::R16G16B16_UINT => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UInt,
+                    bits: 16u8,
+                    plane_index: None,
+                },
                 Component {
                     name: ComponentName::G,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 10u8,
-                    plane_index: Some(0u8),
+                    numeric_format: NumericFormat::UInt,
+                    bits: 16u8,
+                    plane_index: None,
                 },
                 Component {
                     name: ComponentName::B,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 10u8,
-                    plane_index: Some(1u8),
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 10u8,
-                    plane_index: Some(1u8),
+                    numeric_format: NumericFormat::UInt,
+                    bits: 16u8,
+                    plane_index: None,
                 },
             ],
+            Self::R16G16B16A16_UINT => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UInt,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UInt,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UInt,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::A,
+                    numeric_format: NumericFormat::UInt,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R32_UINT => &[Component {
+                name: ComponentName::R,
+                numeric_format: NumericFormat::UInt,
+                bits: 32u8,
+                plane_index: None,
+            }],
+            Self::R32G32_UINT => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UInt,
+                    bits: 32u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UInt,
+                    bits: 32u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R32G32B32_UINT => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UInt,
+                    bits: 32u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UInt,
+                    bits: 32u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UInt,
+                    bits: 32u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R32G32B32A32_UINT => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UInt,
+                    bits: 32u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UInt,
+                    bits: 32u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UInt,
+                    bits: 32u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::A,
+                    numeric_format: NumericFormat::UInt,
+                    bits: 32u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R64_UINT => &[Component {
+                name: ComponentName::R,
+                numeric_format: NumericFormat::UInt,
+                bits: 64u8,
+                plane_index: None,
+            }],
             Self::R64G64_UINT => &[
                 Component {
                     name: ComponentName::R,
@@ -1566,57 +1450,23 @@ impl FormatExt for Format {
                     plane_index: None,
                 },
             ],
-            Self::R4G4B4A4_UNORM_PACK16 => &[
+            Self::R64G64B64_UINT => &[
                 Component {
                     name: ComponentName::R,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 4u8,
+                    numeric_format: NumericFormat::UInt,
+                    bits: 64u8,
                     plane_index: None,
                 },
                 Component {
                     name: ComponentName::G,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 4u8,
+                    numeric_format: NumericFormat::UInt,
+                    bits: 64u8,
                     plane_index: None,
                 },
                 Component {
                     name: ComponentName::B,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 4u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::A,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 4u8,
-                    plane_index: None,
-                },
-            ],
-            Self::D32_SFLOAT_S8_UINT => &[
-                Component {
-                    name: ComponentName::D,
-                    numeric_format: NumericFormat::SFloat,
-                    bits: 32u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::S,
                     numeric_format: NumericFormat::UInt,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R16G16_SINT | Self::R16G16_S10_5_NV => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::SInt,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::SInt,
-                    bits: 16u8,
+                    bits: 64u8,
                     plane_index: None,
                 },
             ],
@@ -1646,80 +1496,108 @@ impl FormatExt for Format {
                     plane_index: None,
                 },
             ],
-            Self::G10X6B10X6G10X6R10X6_422_UNORM_4PACK16 => &[
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-            ],
-            Self::B10G11R11_UFLOAT_PACK32 => &[
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UFloat,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UFloat,
-                    bits: 11u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UFloat,
-                    bits: 11u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R64_UINT => &[Component {
+            Self::R8_SINT => &[Component {
                 name: ComponentName::R,
-                numeric_format: NumericFormat::UInt,
-                bits: 64u8,
+                numeric_format: NumericFormat::SInt,
+                bits: 8u8,
                 plane_index: None,
             }],
-            Self::R16G16B16A16_USCALED => &[
+            Self::R8G8_SINT => &[
                 Component {
                     name: ComponentName::R,
-                    numeric_format: NumericFormat::UScaled,
-                    bits: 16u8,
+                    numeric_format: NumericFormat::SInt,
+                    bits: 8u8,
                     plane_index: None,
                 },
                 Component {
                     name: ComponentName::G,
-                    numeric_format: NumericFormat::UScaled,
-                    bits: 16u8,
+                    numeric_format: NumericFormat::SInt,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R8G8B8_SINT => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::SInt,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::SInt,
+                    bits: 8u8,
                     plane_index: None,
                 },
                 Component {
                     name: ComponentName::B,
-                    numeric_format: NumericFormat::UScaled,
-                    bits: 16u8,
+                    numeric_format: NumericFormat::SInt,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R8G8B8A8_SINT => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::SInt,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::SInt,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::SInt,
+                    bits: 8u8,
                     plane_index: None,
                 },
                 Component {
                     name: ComponentName::A,
-                    numeric_format: NumericFormat::UScaled,
+                    numeric_format: NumericFormat::SInt,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R16_SINT => &[Component {
+                name: ComponentName::R,
+                numeric_format: NumericFormat::SInt,
+                bits: 16u8,
+                plane_index: None,
+            }],
+            Self::R16G16_SINT | Self::R16G16_S10_5_NV => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::SInt,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::SInt,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R16G16B16_SINT => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::SInt,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::SInt,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::SInt,
                     bits: 16u8,
                     plane_index: None,
                 },
@@ -1750,293 +1628,247 @@ impl FormatExt for Format {
                     plane_index: None,
                 },
             ],
-            Self::R16G16B16_SFLOAT => &[
+            Self::R32_SINT => &[Component {
+                name: ComponentName::R,
+                numeric_format: NumericFormat::SInt,
+                bits: 32u8,
+                plane_index: None,
+            }],
+            Self::R32G32_SINT => &[
                 Component {
                     name: ComponentName::R,
-                    numeric_format: NumericFormat::SFloat,
-                    bits: 16u8,
+                    numeric_format: NumericFormat::SInt,
+                    bits: 32u8,
                     plane_index: None,
                 },
                 Component {
                     name: ComponentName::G,
-                    numeric_format: NumericFormat::SFloat,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::SFloat,
-                    bits: 16u8,
+                    numeric_format: NumericFormat::SInt,
+                    bits: 32u8,
                     plane_index: None,
                 },
             ],
-            Self::R8G8B8A8_USCALED => &[
+            Self::R32G32B32_SINT => &[
                 Component {
                     name: ComponentName::R,
-                    numeric_format: NumericFormat::UScaled,
-                    bits: 8u8,
+                    numeric_format: NumericFormat::SInt,
+                    bits: 32u8,
                     plane_index: None,
                 },
                 Component {
                     name: ComponentName::G,
-                    numeric_format: NumericFormat::UScaled,
-                    bits: 8u8,
+                    numeric_format: NumericFormat::SInt,
+                    bits: 32u8,
                     plane_index: None,
                 },
                 Component {
                     name: ComponentName::B,
-                    numeric_format: NumericFormat::UScaled,
-                    bits: 8u8,
+                    numeric_format: NumericFormat::SInt,
+                    bits: 32u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R32G32B32A32_SINT => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::SInt,
+                    bits: 32u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::SInt,
+                    bits: 32u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::SInt,
+                    bits: 32u8,
                     plane_index: None,
                 },
                 Component {
                     name: ComponentName::A,
-                    numeric_format: NumericFormat::UScaled,
-                    bits: 8u8,
+                    numeric_format: NumericFormat::SInt,
+                    bits: 32u8,
                     plane_index: None,
                 },
             ],
-            Self::R12X4G12X4_UNORM_2PACK16 => &[
+            Self::R64_SINT => &[Component {
+                name: ComponentName::R,
+                numeric_format: NumericFormat::SInt,
+                bits: 64u8,
+                plane_index: None,
+            }],
+            Self::R64G64_SINT => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::SInt,
+                    bits: 64u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::SInt,
+                    bits: 64u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R64G64B64_SINT => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::SInt,
+                    bits: 64u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::SInt,
+                    bits: 64u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::SInt,
+                    bits: 64u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R64G64B64A64_SINT => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::SInt,
+                    bits: 64u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::SInt,
+                    bits: 64u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::SInt,
+                    bits: 64u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::A,
+                    numeric_format: NumericFormat::SInt,
+                    bits: 64u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R4G4_UNORM_PACK8 => &[
                 Component {
                     name: ComponentName::R,
                     numeric_format: NumericFormat::UNorm,
-                    bits: 12u8,
+                    bits: 4u8,
                     plane_index: None,
                 },
                 Component {
                     name: ComponentName::G,
                     numeric_format: NumericFormat::UNorm,
-                    bits: 12u8,
+                    bits: 4u8,
                     plane_index: None,
                 },
             ],
-            Self::R8G8_SNORM => &[
+            Self::R4G4B4A4_UNORM_PACK16 => &[
                 Component {
                     name: ComponentName::R,
-                    numeric_format: NumericFormat::SNorm,
-                    bits: 8u8,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 4u8,
                     plane_index: None,
                 },
                 Component {
                     name: ComponentName::G,
-                    numeric_format: NumericFormat::SNorm,
-                    bits: 8u8,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 4u8,
                     plane_index: None,
                 },
-            ],
-            Self::R16G16_SSCALED => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::SScaled,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::SScaled,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-            ],
-            Self::B8G8R8A8_UNORM => &[
                 Component {
                     name: ComponentName::B,
                     numeric_format: NumericFormat::UNorm,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 8u8,
+                    bits: 4u8,
                     plane_index: None,
                 },
                 Component {
                     name: ComponentName::A,
                     numeric_format: NumericFormat::UNorm,
-                    bits: 8u8,
+                    bits: 4u8,
                     plane_index: None,
                 },
             ],
-            Self::R8G8_SSCALED => &[
+            Self::R5G5B5A1_UNORM_PACK16 => &[
                 Component {
                     name: ComponentName::R,
-                    numeric_format: NumericFormat::SScaled,
-                    bits: 8u8,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 5u8,
                     plane_index: None,
                 },
                 Component {
                     name: ComponentName::G,
-                    numeric_format: NumericFormat::SScaled,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-            ],
-            Self::B8G8R8A8_SRGB => &[
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::SRgb,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::SRgb,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::SRgb,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::A,
-                    numeric_format: NumericFormat::SRgb,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-            ],
-            Self::A8B8G8R8_UINT_PACK32 => &[
-                Component {
-                    name: ComponentName::A,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 8u8,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 5u8,
                     plane_index: None,
                 },
                 Component {
                     name: ComponentName::B,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 8u8,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 5u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::A,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 1u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R5G6B5_UNORM_PACK16 => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 5u8,
                     plane_index: None,
                 },
                 Component {
                     name: ComponentName::G,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 8u8,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 6u8,
                     plane_index: None,
                 },
                 Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 8u8,
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 5u8,
                     plane_index: None,
                 },
             ],
-            Self::R16G16_SFLOAT => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::SFloat,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::SFloat,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-            ],
-            Self::A8_UNORM_KHR => &[Component {
-                name: ComponentName::A,
+            Self::R8_UNORM => &[Component {
+                name: ComponentName::R,
                 numeric_format: NumericFormat::UNorm,
                 bits: 8u8,
                 plane_index: None,
             }],
-            Self::R32G32B32_UINT => &[
+            Self::R8G8_UNORM => &[
                 Component {
                     name: ComponentName::R,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 32u8,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 8u8,
                     plane_index: None,
                 },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 32u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 32u8,
-                    plane_index: None,
-                },
-            ],
-            Self::A2R10G10B10_SINT_PACK32 => &[
-                Component {
-                    name: ComponentName::A,
-                    numeric_format: NumericFormat::SInt,
-                    bits: 2u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::SInt,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::SInt,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::SInt,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-            ],
-            Self::A2B10G10R10_SNORM_PACK32 => &[
-                Component {
-                    name: ComponentName::A,
-                    numeric_format: NumericFormat::SNorm,
-                    bits: 2u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::SNorm,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::SNorm,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::SNorm,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-            ],
-            Self::EAC_R11_SNORM_BLOCK => &[Component {
-                name: ComponentName::R,
-                numeric_format: NumericFormat::SNorm,
-                bits: 11u8,
-                plane_index: None,
-            }],
-            Self::G8B8G8R8_422_UNORM => &[
                 Component {
                     name: ComponentName::G,
                     numeric_format: NumericFormat::UNorm,
                     bits: 8u8,
                     plane_index: None,
                 },
+            ],
+            Self::R8G8B8_UNORM => &[
                 Component {
-                    name: ComponentName::B,
+                    name: ComponentName::R,
                     numeric_format: NumericFormat::UNorm,
                     bits: 8u8,
                     plane_index: None,
@@ -2048,99 +1880,9 @@ impl FormatExt for Format {
                     plane_index: None,
                 },
                 Component {
-                    name: ComponentName::R,
+                    name: ComponentName::B,
                     numeric_format: NumericFormat::UNorm,
                     bits: 8u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R32G32B32A32_SFLOAT => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::SFloat,
-                    bits: 32u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::SFloat,
-                    bits: 32u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::SFloat,
-                    bits: 32u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::A,
-                    numeric_format: NumericFormat::SFloat,
-                    bits: 32u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R8_SSCALED => &[Component {
-                name: ComponentName::R,
-                numeric_format: NumericFormat::SScaled,
-                bits: 8u8,
-                plane_index: None,
-            }],
-            Self::R8_SRGB => &[Component {
-                name: ComponentName::R,
-                numeric_format: NumericFormat::SRgb,
-                bits: 8u8,
-                plane_index: None,
-            }],
-            Self::A2B10G10R10_UNORM_PACK32 => &[
-                Component {
-                    name: ComponentName::A,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 2u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-            ],
-            Self::B4G4R4A4_UNORM_PACK16 => &[
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 4u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 4u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 4u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::A,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 4u8,
                     plane_index: None,
                 },
             ],
@@ -2170,6 +1912,738 @@ impl FormatExt for Format {
                     plane_index: None,
                 },
             ],
+            Self::R10X6_UNORM_PACK16 => &[Component {
+                name: ComponentName::R,
+                numeric_format: NumericFormat::UNorm,
+                bits: 10u8,
+                plane_index: None,
+            }],
+            Self::R10X6G10X6_UNORM_2PACK16 => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R10X6G10X6B10X6A10X6_UNORM_4PACK16 => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::A,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+            ],
+            Self::EAC_R11_UNORM_BLOCK => &[Component {
+                name: ComponentName::R,
+                numeric_format: NumericFormat::UNorm,
+                bits: 11u8,
+                plane_index: None,
+            }],
+            Self::EAC_R11G11_UNORM_BLOCK => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 11u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 11u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R12X4_UNORM_PACK16 => &[Component {
+                name: ComponentName::R,
+                numeric_format: NumericFormat::UNorm,
+                bits: 12u8,
+                plane_index: None,
+            }],
+            Self::R12X4G12X4_UNORM_2PACK16 => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 12u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 12u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R12X4G12X4B12X4A12X4_UNORM_4PACK16 => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 12u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 12u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 12u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::A,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 12u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R16_UNORM => &[Component {
+                name: ComponentName::R,
+                numeric_format: NumericFormat::UNorm,
+                bits: 16u8,
+                plane_index: None,
+            }],
+            Self::R16G16_UNORM => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R16G16B16_UNORM => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R16G16B16A16_UNORM => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::A,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R8_SNORM => &[Component {
+                name: ComponentName::R,
+                numeric_format: NumericFormat::SNorm,
+                bits: 8u8,
+                plane_index: None,
+            }],
+            Self::R8G8_SNORM => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::SNorm,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::SNorm,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R8G8B8_SNORM => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::SNorm,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::SNorm,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::SNorm,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R8G8B8A8_SNORM => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::SNorm,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::SNorm,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::SNorm,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::A,
+                    numeric_format: NumericFormat::SNorm,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+            ],
+            Self::EAC_R11_SNORM_BLOCK => &[Component {
+                name: ComponentName::R,
+                numeric_format: NumericFormat::SNorm,
+                bits: 11u8,
+                plane_index: None,
+            }],
+            Self::EAC_R11G11_SNORM_BLOCK => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::SNorm,
+                    bits: 11u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::SNorm,
+                    bits: 11u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R16_SNORM => &[Component {
+                name: ComponentName::R,
+                numeric_format: NumericFormat::SNorm,
+                bits: 16u8,
+                plane_index: None,
+            }],
+            Self::R16G16_SNORM => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::SNorm,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::SNorm,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R16G16B16_SNORM => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::SNorm,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::SNorm,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::SNorm,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R16G16B16A16_SNORM => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::SNorm,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::SNorm,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::SNorm,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::A,
+                    numeric_format: NumericFormat::SNorm,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R8_SRGB => &[Component {
+                name: ComponentName::R,
+                numeric_format: NumericFormat::SRgb,
+                bits: 8u8,
+                plane_index: None,
+            }],
+            Self::R8G8_SRGB => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::SRgb,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::SRgb,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R8G8B8_SRGB => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::SRgb,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::SRgb,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::SRgb,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R8G8B8A8_SRGB => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::SRgb,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::SRgb,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::SRgb,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::A,
+                    numeric_format: NumericFormat::SRgb,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R8_USCALED => &[Component {
+                name: ComponentName::R,
+                numeric_format: NumericFormat::UScaled,
+                bits: 8u8,
+                plane_index: None,
+            }],
+            Self::R8G8_USCALED => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UScaled,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UScaled,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R8G8B8_USCALED => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UScaled,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UScaled,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UScaled,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R8G8B8A8_USCALED => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UScaled,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UScaled,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UScaled,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::A,
+                    numeric_format: NumericFormat::UScaled,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R16_USCALED => &[Component {
+                name: ComponentName::R,
+                numeric_format: NumericFormat::UScaled,
+                bits: 16u8,
+                plane_index: None,
+            }],
+            Self::R16G16_USCALED => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UScaled,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UScaled,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R16G16B16_USCALED => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UScaled,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UScaled,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UScaled,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R16G16B16A16_USCALED => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UScaled,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UScaled,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UScaled,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::A,
+                    numeric_format: NumericFormat::UScaled,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R8_SSCALED => &[Component {
+                name: ComponentName::R,
+                numeric_format: NumericFormat::SScaled,
+                bits: 8u8,
+                plane_index: None,
+            }],
+            Self::R8G8_SSCALED => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::SScaled,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::SScaled,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R8G8B8_SSCALED => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::SScaled,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::SScaled,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::SScaled,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R8G8B8A8_SSCALED => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::SScaled,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::SScaled,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::SScaled,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::A,
+                    numeric_format: NumericFormat::SScaled,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R16_SSCALED => &[Component {
+                name: ComponentName::R,
+                numeric_format: NumericFormat::SScaled,
+                bits: 16u8,
+                plane_index: None,
+            }],
+            Self::R16G16_SSCALED => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::SScaled,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::SScaled,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R16G16B16_SSCALED => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::SScaled,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::SScaled,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::SScaled,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R16G16B16A16_SSCALED => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::SScaled,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::SScaled,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::SScaled,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::A,
+                    numeric_format: NumericFormat::SScaled,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R16_SFLOAT => &[Component {
+                name: ComponentName::R,
+                numeric_format: NumericFormat::SFloat,
+                bits: 16u8,
+                plane_index: None,
+            }],
+            Self::R16G16_SFLOAT => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::SFloat,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::SFloat,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R16G16B16_SFLOAT => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::SFloat,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::SFloat,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::SFloat,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R16G16B16A16_SFLOAT => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::SFloat,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::SFloat,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::SFloat,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::A,
+                    numeric_format: NumericFormat::SFloat,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R32_SFLOAT => &[Component {
+                name: ComponentName::R,
+                numeric_format: NumericFormat::SFloat,
+                bits: 32u8,
+                plane_index: None,
+            }],
             Self::R32G32_SFLOAT => &[
                 Component {
                     name: ComponentName::R,
@@ -2204,837 +2678,29 @@ impl FormatExt for Format {
                     plane_index: None,
                 },
             ],
-            Self::A4R4G4B4_UNORM_PACK16 => &[
-                Component {
-                    name: ComponentName::A,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 4u8,
-                    plane_index: None,
-                },
+            Self::R32G32B32A32_SFLOAT => &[
                 Component {
                     name: ComponentName::R,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 4u8,
+                    numeric_format: NumericFormat::SFloat,
+                    bits: 32u8,
                     plane_index: None,
                 },
                 Component {
                     name: ComponentName::G,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 4u8,
+                    numeric_format: NumericFormat::SFloat,
+                    bits: 32u8,
                     plane_index: None,
                 },
                 Component {
                     name: ComponentName::B,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 4u8,
-                    plane_index: None,
-                },
-            ],
-            Self::B5G5R5A1_UNORM_PACK16 => &[
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 5u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 5u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 5u8,
+                    numeric_format: NumericFormat::SFloat,
+                    bits: 32u8,
                     plane_index: None,
                 },
                 Component {
                     name: ComponentName::A,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 1u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R8G8_SINT => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::SInt,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::SInt,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R8G8B8A8_UINT => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::A,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R8G8B8_USCALED => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UScaled,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UScaled,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UScaled,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-            ],
-            Self::A2R10G10B10_SSCALED_PACK32 => &[
-                Component {
-                    name: ComponentName::A,
-                    numeric_format: NumericFormat::SScaled,
-                    bits: 2u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::SScaled,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::SScaled,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::SScaled,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R16G16B16A16_SNORM => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::SNorm,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::SNorm,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::SNorm,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::A,
-                    numeric_format: NumericFormat::SNorm,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R8G8B8A8_SNORM => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::SNorm,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::SNorm,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::SNorm,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::A,
-                    numeric_format: NumericFormat::SNorm,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R32_SFLOAT => &[Component {
-                name: ComponentName::R,
-                numeric_format: NumericFormat::SFloat,
-                bits: 32u8,
-                plane_index: None,
-            }],
-            Self::R64G64B64A64_SINT => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::SInt,
-                    bits: 64u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::SInt,
-                    bits: 64u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::SInt,
-                    bits: 64u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::A,
-                    numeric_format: NumericFormat::SInt,
-                    bits: 64u8,
-                    plane_index: None,
-                },
-            ],
-            Self::EAC_R11_UNORM_BLOCK => &[Component {
-                name: ComponentName::R,
-                numeric_format: NumericFormat::UNorm,
-                bits: 11u8,
-                plane_index: None,
-            }],
-            Self::R8G8B8_UINT => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R8_SNORM => &[Component {
-                name: ComponentName::R,
-                numeric_format: NumericFormat::SNorm,
-                bits: 8u8,
-                plane_index: None,
-            }],
-            Self::B8G8R8_SINT => &[
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::SInt,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::SInt,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::SInt,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-            ],
-            Self::A8B8G8R8_SSCALED_PACK32 => &[
-                Component {
-                    name: ComponentName::A,
-                    numeric_format: NumericFormat::SScaled,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::SScaled,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::SScaled,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::SScaled,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R64G64B64_UINT => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 64u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 64u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 64u8,
-                    plane_index: None,
-                },
-            ],
-            Self::EAC_R11G11_UNORM_BLOCK => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 11u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 11u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R16G16B16_SINT => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::SInt,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::SInt,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::SInt,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R16G16B16_USCALED => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UScaled,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UScaled,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UScaled,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R32_SINT => &[Component {
-                name: ComponentName::R,
-                numeric_format: NumericFormat::SInt,
-                bits: 32u8,
-                plane_index: None,
-            }],
-            Self::R8_UINT => &[Component {
-                name: ComponentName::R,
-                numeric_format: NumericFormat::UInt,
-                bits: 8u8,
-                plane_index: None,
-            }],
-            Self::A2R10G10B10_UINT_PACK32 => &[
-                Component {
-                    name: ComponentName::A,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 2u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R64G64B64_SINT => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::SInt,
-                    bits: 64u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::SInt,
-                    bits: 64u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::SInt,
-                    bits: 64u8,
-                    plane_index: None,
-                },
-            ],
-            Self::B8G8R8_UNORM => &[
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R8G8B8_SSCALED => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::SScaled,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::SScaled,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::SScaled,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-            ],
-            Self::A4B4G4R4_UNORM_PACK16 => &[
-                Component {
-                    name: ComponentName::A,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 4u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 4u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 4u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 4u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R8G8B8A8_SRGB => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::SRgb,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::SRgb,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::SRgb,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::A,
-                    numeric_format: NumericFormat::SRgb,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-            ],
-            Self::A2B10G10R10_USCALED_PACK32 => &[
-                Component {
-                    name: ComponentName::A,
-                    numeric_format: NumericFormat::UScaled,
-                    bits: 2u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UScaled,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UScaled,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UScaled,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-            ],
-            Self::B12X4G12X4R12X4G12X4_422_UNORM_4PACK16 => &[
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 12u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 12u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 12u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 12u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R16G16B16_UNORM => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-            ],
-            Self::X8_D24_UNORM_PACK32 => &[Component {
-                name: ComponentName::D,
-                numeric_format: NumericFormat::UNorm,
-                bits: 24u8,
-                plane_index: None,
-            }],
-            Self::G12X4_B12X4R12X4_2PLANE_420_UNORM_3PACK16
-            | Self::G12X4_B12X4R12X4_2PLANE_422_UNORM_3PACK16
-            | Self::G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16 => &[
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 12u8,
-                    plane_index: Some(0u8),
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 12u8,
-                    plane_index: Some(1u8),
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 12u8,
-                    plane_index: Some(1u8),
-                },
-            ],
-            Self::B8G8R8_USCALED => &[
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UScaled,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UScaled,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UScaled,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R10X6_UNORM_PACK16 => &[Component {
-                name: ComponentName::R,
-                numeric_format: NumericFormat::UNorm,
-                bits: 10u8,
-                plane_index: None,
-            }],
-            Self::R8G8_USCALED => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UScaled,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UScaled,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-            ],
-            Self::A2R10G10B10_SNORM_PACK32 => &[
-                Component {
-                    name: ComponentName::A,
-                    numeric_format: NumericFormat::SNorm,
-                    bits: 2u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::SNorm,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::SNorm,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::SNorm,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-            ],
-            Self::G12X4B12X4G12X4R12X4_422_UNORM_4PACK16 => &[
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 12u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 12u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 12u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 12u8,
-                    plane_index: None,
-                },
-            ],
-            Self::B8G8R8_SSCALED => &[
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::SScaled,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::SScaled,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::SScaled,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-            ],
-            Self::A1R5G5B5_UNORM_PACK16 => &[
-                Component {
-                    name: ComponentName::A,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 1u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 5u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 5u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 5u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R8G8B8A8_SINT => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::SInt,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::SInt,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::SInt,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::A,
-                    numeric_format: NumericFormat::SInt,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R16_UNORM => &[Component {
-                name: ComponentName::R,
-                numeric_format: NumericFormat::UNorm,
-                bits: 16u8,
-                plane_index: None,
-            }],
-            Self::R16G16_USCALED => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UScaled,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UScaled,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-            ],
-            Self::B8G8R8A8_UINT => &[
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::A,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 8u8,
+                    numeric_format: NumericFormat::SFloat,
+                    bits: 32u8,
                     plane_index: None,
                 },
             ],
@@ -3044,276 +2710,6 @@ impl FormatExt for Format {
                 bits: 64u8,
                 plane_index: None,
             }],
-            Self::B8G8R8_SNORM => &[
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::SNorm,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::SNorm,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::SNorm,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-            ],
-            Self::A1B5G5R5_UNORM_PACK16_KHR => &[
-                Component {
-                    name: ComponentName::A,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 1u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 5u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 5u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 5u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R5G5B5A1_UNORM_PACK16 => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 5u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 5u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 5u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::A,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 1u8,
-                    plane_index: None,
-                },
-            ],
-            Self::A2B10G10R10_SINT_PACK32 => &[
-                Component {
-                    name: ComponentName::A,
-                    numeric_format: NumericFormat::SInt,
-                    bits: 2u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::SInt,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::SInt,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::SInt,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R16_USCALED => &[Component {
-                name: ComponentName::R,
-                numeric_format: NumericFormat::UScaled,
-                bits: 16u8,
-                plane_index: None,
-            }],
-            Self::G8_B8R8_2PLANE_420_UNORM
-            | Self::G8_B8R8_2PLANE_422_UNORM
-            | Self::G8_B8R8_2PLANE_444_UNORM => &[
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 8u8,
-                    plane_index: Some(0u8),
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 8u8,
-                    plane_index: Some(1u8),
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 8u8,
-                    plane_index: Some(1u8),
-                },
-            ],
-            Self::R32G32B32A32_UINT => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 32u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 32u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 32u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::A,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 32u8,
-                    plane_index: None,
-                },
-            ],
-            Self::B5G6R5_UNORM_PACK16 => &[
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 5u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 6u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 5u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R10X6G10X6B10X6A10X6_UNORM_4PACK16 => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::A,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-            ],
-            Self::A8B8G8R8_USCALED_PACK32 => &[
-                Component {
-                    name: ComponentName::A,
-                    numeric_format: NumericFormat::UScaled,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UScaled,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UScaled,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UScaled,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R32G32B32_SINT => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::SInt,
-                    bits: 32u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::SInt,
-                    bits: 32u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::SInt,
-                    bits: 32u8,
-                    plane_index: None,
-                },
-            ],
-            Self::S8_UINT => &[Component {
-                name: ComponentName::S,
-                numeric_format: NumericFormat::UInt,
-                bits: 8u8,
-                plane_index: None,
-            }],
-            Self::E5B9G9R9_UFLOAT_PACK32 => &[
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UFloat,
-                    bits: 9u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UFloat,
-                    bits: 9u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UFloat,
-                    bits: 9u8,
-                    plane_index: None,
-                },
-            ],
             Self::R64G64_SFLOAT => &[
                 Component {
                     name: ComponentName::R,
@@ -3323,6 +2719,26 @@ impl FormatExt for Format {
                 },
                 Component {
                     name: ComponentName::G,
+                    numeric_format: NumericFormat::SFloat,
+                    bits: 64u8,
+                    plane_index: None,
+                },
+            ],
+            Self::R64G64B64_SFLOAT => &[
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::SFloat,
+                    bits: 64u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::SFloat,
+                    bits: 64u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
                     numeric_format: NumericFormat::SFloat,
                     bits: 64u8,
                     plane_index: None,
@@ -3354,119 +2770,13 @@ impl FormatExt for Format {
                     plane_index: None,
                 },
             ],
-            Self::R8G8_UINT => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R16G16B16_UINT => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-            ],
-            Self::A2R10G10B10_UNORM_PACK32 => &[
-                Component {
-                    name: ComponentName::A,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 2u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 10u8,
-                    plane_index: None,
-                },
+            Self::G8B8G8R8_422_UNORM => &[
                 Component {
                     name: ComponentName::G,
                     numeric_format: NumericFormat::UNorm,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-            ],
-            Self::B8G8R8A8_USCALED => &[
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UScaled,
                     bits: 8u8,
                     plane_index: None,
                 },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UScaled,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UScaled,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::A,
-                    numeric_format: NumericFormat::UScaled,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R16G16B16A16_SFLOAT => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::SFloat,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::SFloat,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::SFloat,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::A,
-                    numeric_format: NumericFormat::SFloat,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-            ],
-            Self::B8G8R8G8_422_UNORM => &[
                 Component {
                     name: ComponentName::B,
                     numeric_format: NumericFormat::UNorm,
@@ -3485,33 +2795,27 @@ impl FormatExt for Format {
                     bits: 8u8,
                     plane_index: None,
                 },
+            ],
+            Self::G8_B8R8_2PLANE_420_UNORM
+            | Self::G8_B8R8_2PLANE_422_UNORM
+            | Self::G8_B8R8_2PLANE_444_UNORM => &[
                 Component {
                     name: ComponentName::G,
                     numeric_format: NumericFormat::UNorm,
                     bits: 8u8,
-                    plane_index: None,
-                },
-            ],
-            Self::G12X4_B12X4_R12X4_3PLANE_420_UNORM_3PACK16
-            | Self::G12X4_B12X4_R12X4_3PLANE_422_UNORM_3PACK16
-            | Self::G12X4_B12X4_R12X4_3PLANE_444_UNORM_3PACK16 => &[
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 12u8,
                     plane_index: Some(0u8),
                 },
                 Component {
                     name: ComponentName::B,
                     numeric_format: NumericFormat::UNorm,
-                    bits: 12u8,
+                    bits: 8u8,
                     plane_index: Some(1u8),
                 },
                 Component {
                     name: ComponentName::R,
                     numeric_format: NumericFormat::UNorm,
-                    bits: 12u8,
-                    plane_index: Some(2u8),
+                    bits: 8u8,
+                    plane_index: Some(1u8),
                 },
             ],
             Self::G8_B8_R8_3PLANE_420_UNORM
@@ -3536,170 +2840,146 @@ impl FormatExt for Format {
                     plane_index: Some(2u8),
                 },
             ],
-            Self::A8B8G8R8_SNORM_PACK32 => &[
-                Component {
-                    name: ComponentName::A,
-                    numeric_format: NumericFormat::SNorm,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::SNorm,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::SNorm,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::SNorm,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R8G8_SRGB => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::SRgb,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::SRgb,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R5G6B5_UNORM_PACK16 => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 5u8,
-                    plane_index: None,
-                },
+            Self::G10X6B10X6G10X6R10X6_422_UNORM_4PACK16 => &[
                 Component {
                     name: ComponentName::G,
                     numeric_format: NumericFormat::UNorm,
-                    bits: 6u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 5u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R16_UINT => &[Component {
-                name: ComponentName::R,
-                numeric_format: NumericFormat::UInt,
-                bits: 16u8,
-                plane_index: None,
-            }],
-            Self::R16G16B16A16_UNORM => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::A,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-            ],
-            Self::A2R10G10B10_USCALED_PACK32 => &[
-                Component {
-                    name: ComponentName::A,
-                    numeric_format: NumericFormat::UScaled,
-                    bits: 2u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UScaled,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UScaled,
                     bits: 10u8,
                     plane_index: None,
                 },
                 Component {
                     name: ComponentName::B,
-                    numeric_format: NumericFormat::UScaled,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UNorm,
                     bits: 10u8,
                     plane_index: None,
                 },
             ],
-            Self::R32G32_UINT => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 32u8,
-                    plane_index: None,
-                },
+            Self::G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16
+            | Self::G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16
+            | Self::G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16 => &[
                 Component {
                     name: ComponentName::G,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 32u8,
-                    plane_index: None,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 10u8,
+                    plane_index: Some(0u8),
                 },
-            ],
-            Self::B8G8R8A8_SSCALED => &[
                 Component {
                     name: ComponentName::B,
-                    numeric_format: NumericFormat::SScaled,
-                    bits: 8u8,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 10u8,
+                    plane_index: Some(1u8),
+                },
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 10u8,
+                    plane_index: Some(1u8),
+                },
+            ],
+            Self::G10X6_B10X6_R10X6_3PLANE_420_UNORM_3PACK16
+            | Self::G10X6_B10X6_R10X6_3PLANE_422_UNORM_3PACK16
+            | Self::G10X6_B10X6_R10X6_3PLANE_444_UNORM_3PACK16 => &[
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 10u8,
+                    plane_index: Some(0u8),
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 10u8,
+                    plane_index: Some(1u8),
+                },
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 10u8,
+                    plane_index: Some(2u8),
+                },
+            ],
+            Self::G12X4B12X4G12X4R12X4_422_UNORM_4PACK16 => &[
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 12u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 12u8,
                     plane_index: None,
                 },
                 Component {
                     name: ComponentName::G,
-                    numeric_format: NumericFormat::SScaled,
-                    bits: 8u8,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 12u8,
                     plane_index: None,
                 },
                 Component {
                     name: ComponentName::R,
-                    numeric_format: NumericFormat::SScaled,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::A,
-                    numeric_format: NumericFormat::SScaled,
-                    bits: 8u8,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 12u8,
                     plane_index: None,
                 },
             ],
-            Self::R16_SFLOAT => &[Component {
-                name: ComponentName::R,
-                numeric_format: NumericFormat::SFloat,
-                bits: 16u8,
-                plane_index: None,
-            }],
+            Self::G12X4_B12X4R12X4_2PLANE_420_UNORM_3PACK16
+            | Self::G12X4_B12X4R12X4_2PLANE_422_UNORM_3PACK16
+            | Self::G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16 => &[
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 12u8,
+                    plane_index: Some(0u8),
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 12u8,
+                    plane_index: Some(1u8),
+                },
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 12u8,
+                    plane_index: Some(1u8),
+                },
+            ],
+            Self::G12X4_B12X4_R12X4_3PLANE_420_UNORM_3PACK16
+            | Self::G12X4_B12X4_R12X4_3PLANE_422_UNORM_3PACK16
+            | Self::G12X4_B12X4_R12X4_3PLANE_444_UNORM_3PACK16 => &[
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 12u8,
+                    plane_index: Some(0u8),
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 12u8,
+                    plane_index: Some(1u8),
+                },
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 12u8,
+                    plane_index: Some(2u8),
+                },
+            ],
             Self::G16B16G16R16_422_UNORM => &[
                 Component {
                     name: ComponentName::G,
@@ -3726,36 +3006,112 @@ impl FormatExt for Format {
                     plane_index: None,
                 },
             ],
-            Self::R8G8_UNORM => &[
+            Self::G16_B16R16_2PLANE_420_UNORM
+            | Self::G16_B16R16_2PLANE_422_UNORM
+            | Self::G16_B16R16_2PLANE_444_UNORM => &[
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 16u8,
+                    plane_index: Some(0u8),
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 16u8,
+                    plane_index: Some(1u8),
+                },
                 Component {
                     name: ComponentName::R,
                     numeric_format: NumericFormat::UNorm,
+                    bits: 16u8,
+                    plane_index: Some(1u8),
+                },
+            ],
+            Self::G16_B16_R16_3PLANE_420_UNORM
+            | Self::G16_B16_R16_3PLANE_422_UNORM
+            | Self::G16_B16_R16_3PLANE_444_UNORM => &[
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 16u8,
+                    plane_index: Some(0u8),
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 16u8,
+                    plane_index: Some(1u8),
+                },
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 16u8,
+                    plane_index: Some(2u8),
+                },
+            ],
+            Self::B8G8R8_UINT => &[
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UInt,
                     bits: 8u8,
                     plane_index: None,
                 },
                 Component {
                     name: ComponentName::G,
-                    numeric_format: NumericFormat::UNorm,
+                    numeric_format: NumericFormat::UInt,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UInt,
                     bits: 8u8,
                     plane_index: None,
                 },
             ],
-            Self::R8G8B8_SNORM => &[
+            Self::B8G8R8A8_UINT => &[
                 Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::SNorm,
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UInt,
                     bits: 8u8,
                     plane_index: None,
                 },
                 Component {
                     name: ComponentName::G,
-                    numeric_format: NumericFormat::SNorm,
+                    numeric_format: NumericFormat::UInt,
                     bits: 8u8,
                     plane_index: None,
                 },
                 Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UInt,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::A,
+                    numeric_format: NumericFormat::UInt,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+            ],
+            Self::B8G8R8_SINT => &[
+                Component {
                     name: ComponentName::B,
-                    numeric_format: NumericFormat::SNorm,
+                    numeric_format: NumericFormat::SInt,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::SInt,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::SInt,
                     bits: 8u8,
                     plane_index: None,
                 },
@@ -3786,277 +3142,9 @@ impl FormatExt for Format {
                     plane_index: None,
                 },
             ],
-            Self::R16_SINT => &[Component {
-                name: ComponentName::R,
-                numeric_format: NumericFormat::SInt,
-                bits: 16u8,
-                plane_index: None,
-            }],
-            Self::R16G16_SNORM => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::SNorm,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::SNorm,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R32G32B32A32_SINT => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::SInt,
-                    bits: 32u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::SInt,
-                    bits: 32u8,
-                    plane_index: None,
-                },
+            Self::B4G4R4A4_UNORM_PACK16 => &[
                 Component {
                     name: ComponentName::B,
-                    numeric_format: NumericFormat::SInt,
-                    bits: 32u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::A,
-                    numeric_format: NumericFormat::SInt,
-                    bits: 32u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R64G64B64_SFLOAT => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::SFloat,
-                    bits: 64u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::SFloat,
-                    bits: 64u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::SFloat,
-                    bits: 64u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R16G16_UNORM => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-            ],
-            Self::D32_SFLOAT => &[Component {
-                name: ComponentName::D,
-                numeric_format: NumericFormat::SFloat,
-                bits: 32u8,
-                plane_index: None,
-            }],
-            Self::G16_B16_R16_3PLANE_420_UNORM
-            | Self::G16_B16_R16_3PLANE_422_UNORM
-            | Self::G16_B16_R16_3PLANE_444_UNORM => &[
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 16u8,
-                    plane_index: Some(0u8),
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 16u8,
-                    plane_index: Some(1u8),
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 16u8,
-                    plane_index: Some(2u8),
-                },
-            ],
-            Self::R16_SNORM => &[Component {
-                name: ComponentName::R,
-                numeric_format: NumericFormat::SNorm,
-                bits: 16u8,
-                plane_index: None,
-            }],
-            Self::A2B10G10R10_SSCALED_PACK32 => &[
-                Component {
-                    name: ComponentName::A,
-                    numeric_format: NumericFormat::SScaled,
-                    bits: 2u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::SScaled,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::SScaled,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::SScaled,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R64G64_SINT => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::SInt,
-                    bits: 64u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::SInt,
-                    bits: 64u8,
-                    plane_index: None,
-                },
-            ],
-            Self::G10X6_B10X6_R10X6_3PLANE_420_UNORM_3PACK16
-            | Self::G10X6_B10X6_R10X6_3PLANE_422_UNORM_3PACK16
-            | Self::G10X6_B10X6_R10X6_3PLANE_444_UNORM_3PACK16 => &[
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 10u8,
-                    plane_index: Some(0u8),
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 10u8,
-                    plane_index: Some(1u8),
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 10u8,
-                    plane_index: Some(2u8),
-                },
-            ],
-            Self::R16G16B16A16_UINT => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::A,
-                    numeric_format: NumericFormat::UInt,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-            ],
-            Self::B8G8R8_SRGB => &[
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::SRgb,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::SRgb,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::SRgb,
-                    bits: 8u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R16G16B16A16_SSCALED => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::SScaled,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::SScaled,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::B,
-                    numeric_format: NumericFormat::SScaled,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::A,
-                    numeric_format: NumericFormat::SScaled,
-                    bits: 16u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R32G32_SINT => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::SInt,
-                    bits: 32u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::SInt,
-                    bits: 32u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R8_UNORM => &[Component {
-                name: ComponentName::R,
-                numeric_format: NumericFormat::UNorm,
-                bits: 8u8,
-                plane_index: None,
-            }],
-            Self::R4G4_UNORM_PACK8 => &[
-                Component {
-                    name: ComponentName::R,
                     numeric_format: NumericFormat::UNorm,
                     bits: 4u8,
                     plane_index: None,
@@ -4067,13 +3155,235 @@ impl FormatExt for Format {
                     bits: 4u8,
                     plane_index: None,
                 },
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 4u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::A,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 4u8,
+                    plane_index: None,
+                },
             ],
-            Self::R8_SINT => &[Component {
-                name: ComponentName::R,
-                numeric_format: NumericFormat::SInt,
-                bits: 8u8,
-                plane_index: None,
-            }],
+            Self::B5G5R5A1_UNORM_PACK16 => &[
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 5u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 5u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 5u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::A,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 1u8,
+                    plane_index: None,
+                },
+            ],
+            Self::B5G6R5_UNORM_PACK16 => &[
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 5u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 6u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 5u8,
+                    plane_index: None,
+                },
+            ],
+            Self::B8G8R8_UNORM => &[
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+            ],
+            Self::B8G8R8G8_422_UNORM => &[
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+            ],
+            Self::B8G8R8A8_UNORM => &[
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::A,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+            ],
+            Self::B10X6G10X6R10X6G10X6_422_UNORM_4PACK16 => &[
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+            ],
+            Self::B12X4G12X4R12X4G12X4_422_UNORM_4PACK16 => &[
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 12u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 12u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 12u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 12u8,
+                    plane_index: None,
+                },
+            ],
+            Self::B16G16R16G16_422_UNORM => &[
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+            ],
+            Self::B8G8R8_SNORM => &[
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::SNorm,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::SNorm,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::SNorm,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+            ],
             Self::B8G8R8A8_SNORM => &[
                 Component {
                     name: ComponentName::B,
@@ -4100,9 +3410,101 @@ impl FormatExt for Format {
                     plane_index: None,
                 },
             ],
-            Self::R8G8B8A8_SSCALED => &[
+            Self::B8G8R8_SRGB => &[
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::SRgb,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::SRgb,
+                    bits: 8u8,
+                    plane_index: None,
+                },
                 Component {
                     name: ComponentName::R,
+                    numeric_format: NumericFormat::SRgb,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+            ],
+            Self::B8G8R8A8_SRGB => &[
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::SRgb,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::SRgb,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::SRgb,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::A,
+                    numeric_format: NumericFormat::SRgb,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+            ],
+            Self::B8G8R8_USCALED => &[
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UScaled,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UScaled,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UScaled,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+            ],
+            Self::B8G8R8A8_USCALED => &[
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UScaled,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UScaled,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UScaled,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::A,
+                    numeric_format: NumericFormat::UScaled,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+            ],
+            Self::B8G8R8_SSCALED => &[
+                Component {
+                    name: ComponentName::B,
                     numeric_format: NumericFormat::SScaled,
                     bits: 8u8,
                     plane_index: None,
@@ -4114,7 +3516,27 @@ impl FormatExt for Format {
                     plane_index: None,
                 },
                 Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::SScaled,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+            ],
+            Self::B8G8R8A8_SSCALED => &[
+                Component {
                     name: ComponentName::B,
+                    numeric_format: NumericFormat::SScaled,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::SScaled,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::R,
                     numeric_format: NumericFormat::SScaled,
                     bits: 8u8,
                     plane_index: None,
@@ -4123,6 +3545,176 @@ impl FormatExt for Format {
                     name: ComponentName::A,
                     numeric_format: NumericFormat::SScaled,
                     bits: 8u8,
+                    plane_index: None,
+                },
+            ],
+            Self::E5B9G9R9_UFLOAT_PACK32 => &[
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UFloat,
+                    bits: 9u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UFloat,
+                    bits: 9u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UFloat,
+                    bits: 9u8,
+                    plane_index: None,
+                },
+            ],
+            Self::B10G11R11_UFLOAT_PACK32 => &[
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UFloat,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UFloat,
+                    bits: 11u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UFloat,
+                    bits: 11u8,
+                    plane_index: None,
+                },
+            ],
+            Self::A2R10G10B10_UINT_PACK32 => &[
+                Component {
+                    name: ComponentName::A,
+                    numeric_format: NumericFormat::UInt,
+                    bits: 2u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UInt,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UInt,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UInt,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+            ],
+            Self::A2B10G10R10_UINT_PACK32 => &[
+                Component {
+                    name: ComponentName::A,
+                    numeric_format: NumericFormat::UInt,
+                    bits: 2u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UInt,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UInt,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UInt,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+            ],
+            Self::A8B8G8R8_UINT_PACK32 => &[
+                Component {
+                    name: ComponentName::A,
+                    numeric_format: NumericFormat::UInt,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UInt,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UInt,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UInt,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+            ],
+            Self::A2R10G10B10_SINT_PACK32 => &[
+                Component {
+                    name: ComponentName::A,
+                    numeric_format: NumericFormat::SInt,
+                    bits: 2u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::SInt,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::SInt,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::SInt,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+            ],
+            Self::A2B10G10R10_SINT_PACK32 => &[
+                Component {
+                    name: ComponentName::A,
+                    numeric_format: NumericFormat::SInt,
+                    bits: 2u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::SInt,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::SInt,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::SInt,
+                    bits: 10u8,
                     plane_index: None,
                 },
             ],
@@ -4148,6 +3740,272 @@ impl FormatExt for Format {
                 Component {
                     name: ComponentName::R,
                     numeric_format: NumericFormat::SInt,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+            ],
+            Self::A1R5G5B5_UNORM_PACK16 => &[
+                Component {
+                    name: ComponentName::A,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 1u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 5u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 5u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 5u8,
+                    plane_index: None,
+                },
+            ],
+            Self::A1B5G5R5_UNORM_PACK16_KHR => &[
+                Component {
+                    name: ComponentName::A,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 1u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 5u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 5u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 5u8,
+                    plane_index: None,
+                },
+            ],
+            Self::A2R10G10B10_UNORM_PACK32 => &[
+                Component {
+                    name: ComponentName::A,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 2u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+            ],
+            Self::A2B10G10R10_UNORM_PACK32 => &[
+                Component {
+                    name: ComponentName::A,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 2u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+            ],
+            Self::A4R4G4B4_UNORM_PACK16 => &[
+                Component {
+                    name: ComponentName::A,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 4u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 4u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 4u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 4u8,
+                    plane_index: None,
+                },
+            ],
+            Self::A4B4G4R4_UNORM_PACK16 => &[
+                Component {
+                    name: ComponentName::A,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 4u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 4u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 4u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 4u8,
+                    plane_index: None,
+                },
+            ],
+            Self::A8_UNORM_KHR => &[Component {
+                name: ComponentName::A,
+                numeric_format: NumericFormat::UNorm,
+                bits: 8u8,
+                plane_index: None,
+            }],
+            Self::A8B8G8R8_UNORM_PACK32 => &[
+                Component {
+                    name: ComponentName::A,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+            ],
+            Self::A2R10G10B10_SNORM_PACK32 => &[
+                Component {
+                    name: ComponentName::A,
+                    numeric_format: NumericFormat::SNorm,
+                    bits: 2u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::SNorm,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::SNorm,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::SNorm,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+            ],
+            Self::A2B10G10R10_SNORM_PACK32 => &[
+                Component {
+                    name: ComponentName::A,
+                    numeric_format: NumericFormat::SNorm,
+                    bits: 2u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::SNorm,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::SNorm,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::SNorm,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+            ],
+            Self::A8B8G8R8_SNORM_PACK32 => &[
+                Component {
+                    name: ComponentName::A,
+                    numeric_format: NumericFormat::SNorm,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::SNorm,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::SNorm,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::SNorm,
                     bits: 8u8,
                     plane_index: None,
                 },
@@ -4178,66 +4036,188 @@ impl FormatExt for Format {
                     plane_index: None,
                 },
             ],
-            Self::R8G8B8_SINT => &[
+            Self::A2R10G10B10_USCALED_PACK32 => &[
+                Component {
+                    name: ComponentName::A,
+                    numeric_format: NumericFormat::UScaled,
+                    bits: 2u8,
+                    plane_index: None,
+                },
                 Component {
                     name: ComponentName::R,
-                    numeric_format: NumericFormat::SInt,
-                    bits: 8u8,
+                    numeric_format: NumericFormat::UScaled,
+                    bits: 10u8,
                     plane_index: None,
                 },
                 Component {
                     name: ComponentName::G,
-                    numeric_format: NumericFormat::SInt,
+                    numeric_format: NumericFormat::UScaled,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UScaled,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+            ],
+            Self::A2B10G10R10_USCALED_PACK32 => &[
+                Component {
+                    name: ComponentName::A,
+                    numeric_format: NumericFormat::UScaled,
+                    bits: 2u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::UScaled,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UScaled,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UScaled,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+            ],
+            Self::A8B8G8R8_USCALED_PACK32 => &[
+                Component {
+                    name: ComponentName::A,
+                    numeric_format: NumericFormat::UScaled,
                     bits: 8u8,
                     plane_index: None,
                 },
                 Component {
                     name: ComponentName::B,
-                    numeric_format: NumericFormat::SInt,
+                    numeric_format: NumericFormat::UScaled,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::UScaled,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::UScaled,
                     bits: 8u8,
                     plane_index: None,
                 },
             ],
-            Self::R16_SSCALED => &[Component {
-                name: ComponentName::R,
-                numeric_format: NumericFormat::SScaled,
+            Self::A2R10G10B10_SSCALED_PACK32 => &[
+                Component {
+                    name: ComponentName::A,
+                    numeric_format: NumericFormat::SScaled,
+                    bits: 2u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::SScaled,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::SScaled,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::SScaled,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+            ],
+            Self::A2B10G10R10_SSCALED_PACK32 => &[
+                Component {
+                    name: ComponentName::A,
+                    numeric_format: NumericFormat::SScaled,
+                    bits: 2u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::SScaled,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::SScaled,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::SScaled,
+                    bits: 10u8,
+                    plane_index: None,
+                },
+            ],
+            Self::A8B8G8R8_SSCALED_PACK32 => &[
+                Component {
+                    name: ComponentName::A,
+                    numeric_format: NumericFormat::SScaled,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::B,
+                    numeric_format: NumericFormat::SScaled,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::G,
+                    numeric_format: NumericFormat::SScaled,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::R,
+                    numeric_format: NumericFormat::SScaled,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+            ],
+            Self::D16_UNORM => &[Component {
+                name: ComponentName::D,
+                numeric_format: NumericFormat::UNorm,
                 bits: 16u8,
                 plane_index: None,
             }],
-            Self::R64_SINT => &[Component {
-                name: ComponentName::R,
-                numeric_format: NumericFormat::SInt,
-                bits: 64u8,
+            Self::D16_UNORM_S8_UINT => &[
+                Component {
+                    name: ComponentName::D,
+                    numeric_format: NumericFormat::UNorm,
+                    bits: 16u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::S,
+                    numeric_format: NumericFormat::UInt,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+            ],
+            Self::X8_D24_UNORM_PACK32 => &[Component {
+                name: ComponentName::D,
+                numeric_format: NumericFormat::UNorm,
+                bits: 24u8,
                 plane_index: None,
             }],
-            Self::EAC_R11G11_SNORM_BLOCK => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::SNorm,
-                    bits: 11u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::SNorm,
-                    bits: 11u8,
-                    plane_index: None,
-                },
-            ],
-            Self::R10X6G10X6_UNORM_2PACK16 => &[
-                Component {
-                    name: ComponentName::R,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-                Component {
-                    name: ComponentName::G,
-                    numeric_format: NumericFormat::UNorm,
-                    bits: 10u8,
-                    plane_index: None,
-                },
-            ],
             Self::D24_UNORM_S8_UINT => &[
                 Component {
                     name: ComponentName::D,
@@ -4252,9 +4232,29 @@ impl FormatExt for Format {
                     plane_index: None,
                 },
             ],
-            Self::R8_USCALED => &[Component {
-                name: ComponentName::R,
-                numeric_format: NumericFormat::UScaled,
+            Self::D32_SFLOAT => &[Component {
+                name: ComponentName::D,
+                numeric_format: NumericFormat::SFloat,
+                bits: 32u8,
+                plane_index: None,
+            }],
+            Self::D32_SFLOAT_S8_UINT => &[
+                Component {
+                    name: ComponentName::D,
+                    numeric_format: NumericFormat::SFloat,
+                    bits: 32u8,
+                    plane_index: None,
+                },
+                Component {
+                    name: ComponentName::S,
+                    numeric_format: NumericFormat::UInt,
+                    bits: 8u8,
+                    plane_index: None,
+                },
+            ],
+            Self::S8_UINT => &[Component {
+                name: ComponentName::S,
+                numeric_format: NumericFormat::UInt,
                 bits: 8u8,
                 plane_index: None,
             }],
@@ -4263,21 +4263,16 @@ impl FormatExt for Format {
     }
     fn planes(self) -> &'static [Plane] {
         match self {
-            Self::G12X4_B12X4_R12X4_3PLANE_444_UNORM_3PACK16 => &[
+            Self::G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16 => &[
                 Plane {
                     width_divisor: 1u8,
                     height_divisor: 1u8,
-                    compatible_format: Format::R12X4_UNORM_PACK16,
+                    compatible_format: Format::R10X6_UNORM_PACK16,
                 },
                 Plane {
                     width_divisor: 1u8,
                     height_divisor: 1u8,
-                    compatible_format: Format::R12X4_UNORM_PACK16,
-                },
-                Plane {
-                    width_divisor: 1u8,
-                    height_divisor: 1u8,
-                    compatible_format: Format::R12X4_UNORM_PACK16,
+                    compatible_format: Format::R10X6G10X6_UNORM_2PACK16,
                 },
             ],
             Self::G10X6_B10X6_R10X6_3PLANE_444_UNORM_3PACK16 => &[
@@ -4297,74 +4292,33 @@ impl FormatExt for Format {
                     compatible_format: Format::R10X6_UNORM_PACK16,
                 },
             ],
-            Self::G16_B16_R16_3PLANE_444_UNORM => &[
-                Plane {
-                    width_divisor: 1u8,
-                    height_divisor: 1u8,
-                    compatible_format: Format::R16_UNORM,
-                },
-                Plane {
-                    width_divisor: 1u8,
-                    height_divisor: 1u8,
-                    compatible_format: Format::R16_UNORM,
-                },
-                Plane {
-                    width_divisor: 1u8,
-                    height_divisor: 1u8,
-                    compatible_format: Format::R16_UNORM,
-                },
-            ],
-            Self::G16_B16_R16_3PLANE_422_UNORM => &[
-                Plane {
-                    width_divisor: 1u8,
-                    height_divisor: 1u8,
-                    compatible_format: Format::R16_UNORM,
-                },
-                Plane {
-                    width_divisor: 2u8,
-                    height_divisor: 1u8,
-                    compatible_format: Format::R16_UNORM,
-                },
-                Plane {
-                    width_divisor: 2u8,
-                    height_divisor: 1u8,
-                    compatible_format: Format::R16_UNORM,
-                },
-            ],
-            Self::G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16 => &[
+            Self::G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16 => &[
                 Plane {
                     width_divisor: 1u8,
                     height_divisor: 1u8,
                     compatible_format: Format::R10X6_UNORM_PACK16,
                 },
                 Plane {
-                    width_divisor: 1u8,
+                    width_divisor: 2u8,
                     height_divisor: 1u8,
                     compatible_format: Format::R10X6G10X6_UNORM_2PACK16,
                 },
             ],
-            Self::G12X4_B12X4R12X4_2PLANE_420_UNORM_3PACK16 => &[
+            Self::G10X6_B10X6_R10X6_3PLANE_422_UNORM_3PACK16 => &[
                 Plane {
                     width_divisor: 1u8,
                     height_divisor: 1u8,
-                    compatible_format: Format::R12X4_UNORM_PACK16,
+                    compatible_format: Format::R10X6_UNORM_PACK16,
                 },
                 Plane {
                     width_divisor: 2u8,
-                    height_divisor: 2u8,
-                    compatible_format: Format::R12X4G12X4_UNORM_2PACK16,
-                },
-            ],
-            Self::G8_B8R8_2PLANE_420_UNORM => &[
-                Plane {
-                    width_divisor: 1u8,
                     height_divisor: 1u8,
-                    compatible_format: Format::R8_UNORM,
+                    compatible_format: Format::R10X6_UNORM_PACK16,
                 },
                 Plane {
                     width_divisor: 2u8,
-                    height_divisor: 2u8,
-                    compatible_format: Format::R8G8_UNORM,
+                    height_divisor: 1u8,
+                    compatible_format: Format::R10X6_UNORM_PACK16,
                 },
             ],
             Self::G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16 => &[
@@ -4377,6 +4331,52 @@ impl FormatExt for Format {
                     width_divisor: 2u8,
                     height_divisor: 2u8,
                     compatible_format: Format::R10X6G10X6_UNORM_2PACK16,
+                },
+            ],
+            Self::G10X6_B10X6_R10X6_3PLANE_420_UNORM_3PACK16 => &[
+                Plane {
+                    width_divisor: 1u8,
+                    height_divisor: 1u8,
+                    compatible_format: Format::R10X6_UNORM_PACK16,
+                },
+                Plane {
+                    width_divisor: 2u8,
+                    height_divisor: 2u8,
+                    compatible_format: Format::R10X6_UNORM_PACK16,
+                },
+                Plane {
+                    width_divisor: 2u8,
+                    height_divisor: 2u8,
+                    compatible_format: Format::R10X6_UNORM_PACK16,
+                },
+            ],
+            Self::G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16 => &[
+                Plane {
+                    width_divisor: 1u8,
+                    height_divisor: 1u8,
+                    compatible_format: Format::R12X4_UNORM_PACK16,
+                },
+                Plane {
+                    width_divisor: 1u8,
+                    height_divisor: 1u8,
+                    compatible_format: Format::R12X4G12X4_UNORM_2PACK16,
+                },
+            ],
+            Self::G12X4_B12X4_R12X4_3PLANE_444_UNORM_3PACK16 => &[
+                Plane {
+                    width_divisor: 1u8,
+                    height_divisor: 1u8,
+                    compatible_format: Format::R12X4_UNORM_PACK16,
+                },
+                Plane {
+                    width_divisor: 1u8,
+                    height_divisor: 1u8,
+                    compatible_format: Format::R12X4_UNORM_PACK16,
+                },
+                Plane {
+                    width_divisor: 1u8,
+                    height_divisor: 1u8,
+                    compatible_format: Format::R12X4_UNORM_PACK16,
                 },
             ],
             Self::G12X4_B12X4R12X4_2PLANE_422_UNORM_3PACK16 => &[
@@ -4408,33 +4408,16 @@ impl FormatExt for Format {
                     compatible_format: Format::R12X4_UNORM_PACK16,
                 },
             ],
-            Self::G8_B8R8_2PLANE_422_UNORM => &[
+            Self::G12X4_B12X4R12X4_2PLANE_420_UNORM_3PACK16 => &[
                 Plane {
                     width_divisor: 1u8,
                     height_divisor: 1u8,
-                    compatible_format: Format::R8_UNORM,
-                },
-                Plane {
-                    width_divisor: 2u8,
-                    height_divisor: 1u8,
-                    compatible_format: Format::R8G8_UNORM,
-                },
-            ],
-            Self::G16_B16_R16_3PLANE_420_UNORM => &[
-                Plane {
-                    width_divisor: 1u8,
-                    height_divisor: 1u8,
-                    compatible_format: Format::R16_UNORM,
+                    compatible_format: Format::R12X4_UNORM_PACK16,
                 },
                 Plane {
                     width_divisor: 2u8,
                     height_divisor: 2u8,
-                    compatible_format: Format::R16_UNORM,
-                },
-                Plane {
-                    width_divisor: 2u8,
-                    height_divisor: 2u8,
-                    compatible_format: Format::R16_UNORM,
+                    compatible_format: Format::R12X4G12X4_UNORM_2PACK16,
                 },
             ],
             Self::G12X4_B12X4_R12X4_3PLANE_420_UNORM_3PACK16 => &[
@@ -4454,62 +4437,33 @@ impl FormatExt for Format {
                     compatible_format: Format::R12X4_UNORM_PACK16,
                 },
             ],
-            Self::G8_B8_R8_3PLANE_420_UNORM => &[
-                Plane {
-                    width_divisor: 1u8,
-                    height_divisor: 1u8,
-                    compatible_format: Format::R8_UNORM,
-                },
-                Plane {
-                    width_divisor: 2u8,
-                    height_divisor: 2u8,
-                    compatible_format: Format::R8_UNORM,
-                },
-                Plane {
-                    width_divisor: 2u8,
-                    height_divisor: 2u8,
-                    compatible_format: Format::R8_UNORM,
-                },
-            ],
-            Self::G10X6_B10X6_R10X6_3PLANE_420_UNORM_3PACK16 => &[
-                Plane {
-                    width_divisor: 1u8,
-                    height_divisor: 1u8,
-                    compatible_format: Format::R10X6_UNORM_PACK16,
-                },
-                Plane {
-                    width_divisor: 2u8,
-                    height_divisor: 2u8,
-                    compatible_format: Format::R10X6_UNORM_PACK16,
-                },
-                Plane {
-                    width_divisor: 2u8,
-                    height_divisor: 2u8,
-                    compatible_format: Format::R10X6_UNORM_PACK16,
-                },
-            ],
-            Self::G16_B16R16_2PLANE_420_UNORM => &[
+            Self::G16_B16R16_2PLANE_444_UNORM => &[
                 Plane {
                     width_divisor: 1u8,
                     height_divisor: 1u8,
                     compatible_format: Format::R16_UNORM,
                 },
                 Plane {
-                    width_divisor: 2u8,
-                    height_divisor: 2u8,
+                    width_divisor: 1u8,
+                    height_divisor: 1u8,
                     compatible_format: Format::R16G16_UNORM,
                 },
             ],
-            Self::G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16 => &[
+            Self::G16_B16_R16_3PLANE_444_UNORM => &[
                 Plane {
                     width_divisor: 1u8,
                     height_divisor: 1u8,
-                    compatible_format: Format::R10X6_UNORM_PACK16,
+                    compatible_format: Format::R16_UNORM,
                 },
                 Plane {
-                    width_divisor: 2u8,
+                    width_divisor: 1u8,
                     height_divisor: 1u8,
-                    compatible_format: Format::R10X6G10X6_UNORM_2PACK16,
+                    compatible_format: Format::R16_UNORM,
+                },
+                Plane {
+                    width_divisor: 1u8,
+                    height_divisor: 1u8,
+                    compatible_format: Format::R16_UNORM,
                 },
             ],
             Self::G16_B16R16_2PLANE_422_UNORM => &[
@@ -4524,6 +4478,52 @@ impl FormatExt for Format {
                     compatible_format: Format::R16G16_UNORM,
                 },
             ],
+            Self::G16_B16_R16_3PLANE_422_UNORM => &[
+                Plane {
+                    width_divisor: 1u8,
+                    height_divisor: 1u8,
+                    compatible_format: Format::R16_UNORM,
+                },
+                Plane {
+                    width_divisor: 2u8,
+                    height_divisor: 1u8,
+                    compatible_format: Format::R16_UNORM,
+                },
+                Plane {
+                    width_divisor: 2u8,
+                    height_divisor: 1u8,
+                    compatible_format: Format::R16_UNORM,
+                },
+            ],
+            Self::G16_B16R16_2PLANE_420_UNORM => &[
+                Plane {
+                    width_divisor: 1u8,
+                    height_divisor: 1u8,
+                    compatible_format: Format::R16_UNORM,
+                },
+                Plane {
+                    width_divisor: 2u8,
+                    height_divisor: 2u8,
+                    compatible_format: Format::R16G16_UNORM,
+                },
+            ],
+            Self::G16_B16_R16_3PLANE_420_UNORM => &[
+                Plane {
+                    width_divisor: 1u8,
+                    height_divisor: 1u8,
+                    compatible_format: Format::R16_UNORM,
+                },
+                Plane {
+                    width_divisor: 2u8,
+                    height_divisor: 2u8,
+                    compatible_format: Format::R16_UNORM,
+                },
+                Plane {
+                    width_divisor: 2u8,
+                    height_divisor: 2u8,
+                    compatible_format: Format::R16_UNORM,
+                },
+            ],
             Self::G8_B8R8_2PLANE_444_UNORM => &[
                 Plane {
                     width_divisor: 1u8,
@@ -4534,47 +4534,6 @@ impl FormatExt for Format {
                     width_divisor: 1u8,
                     height_divisor: 1u8,
                     compatible_format: Format::R8G8_UNORM,
-                },
-            ],
-            Self::G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16 => &[
-                Plane {
-                    width_divisor: 1u8,
-                    height_divisor: 1u8,
-                    compatible_format: Format::R12X4_UNORM_PACK16,
-                },
-                Plane {
-                    width_divisor: 1u8,
-                    height_divisor: 1u8,
-                    compatible_format: Format::R12X4G12X4_UNORM_2PACK16,
-                },
-            ],
-            Self::G16_B16R16_2PLANE_444_UNORM => &[
-                Plane {
-                    width_divisor: 1u8,
-                    height_divisor: 1u8,
-                    compatible_format: Format::R16_UNORM,
-                },
-                Plane {
-                    width_divisor: 1u8,
-                    height_divisor: 1u8,
-                    compatible_format: Format::R16G16_UNORM,
-                },
-            ],
-            Self::G8_B8_R8_3PLANE_422_UNORM => &[
-                Plane {
-                    width_divisor: 1u8,
-                    height_divisor: 1u8,
-                    compatible_format: Format::R8_UNORM,
-                },
-                Plane {
-                    width_divisor: 2u8,
-                    height_divisor: 1u8,
-                    compatible_format: Format::R8_UNORM,
-                },
-                Plane {
-                    width_divisor: 2u8,
-                    height_divisor: 1u8,
-                    compatible_format: Format::R8_UNORM,
                 },
             ],
             Self::G8_B8_R8_3PLANE_444_UNORM => &[
@@ -4594,21 +4553,62 @@ impl FormatExt for Format {
                     compatible_format: Format::R8_UNORM,
                 },
             ],
-            Self::G10X6_B10X6_R10X6_3PLANE_422_UNORM_3PACK16 => &[
+            Self::G8_B8R8_2PLANE_422_UNORM => &[
                 Plane {
                     width_divisor: 1u8,
                     height_divisor: 1u8,
-                    compatible_format: Format::R10X6_UNORM_PACK16,
+                    compatible_format: Format::R8_UNORM,
                 },
                 Plane {
                     width_divisor: 2u8,
                     height_divisor: 1u8,
-                    compatible_format: Format::R10X6_UNORM_PACK16,
+                    compatible_format: Format::R8G8_UNORM,
+                },
+            ],
+            Self::G8_B8_R8_3PLANE_422_UNORM => &[
+                Plane {
+                    width_divisor: 1u8,
+                    height_divisor: 1u8,
+                    compatible_format: Format::R8_UNORM,
                 },
                 Plane {
                     width_divisor: 2u8,
                     height_divisor: 1u8,
-                    compatible_format: Format::R10X6_UNORM_PACK16,
+                    compatible_format: Format::R8_UNORM,
+                },
+                Plane {
+                    width_divisor: 2u8,
+                    height_divisor: 1u8,
+                    compatible_format: Format::R8_UNORM,
+                },
+            ],
+            Self::G8_B8R8_2PLANE_420_UNORM => &[
+                Plane {
+                    width_divisor: 1u8,
+                    height_divisor: 1u8,
+                    compatible_format: Format::R8_UNORM,
+                },
+                Plane {
+                    width_divisor: 2u8,
+                    height_divisor: 2u8,
+                    compatible_format: Format::R8G8_UNORM,
+                },
+            ],
+            Self::G8_B8_R8_3PLANE_420_UNORM => &[
+                Plane {
+                    width_divisor: 1u8,
+                    height_divisor: 1u8,
+                    compatible_format: Format::R8_UNORM,
+                },
+                Plane {
+                    width_divisor: 2u8,
+                    height_divisor: 2u8,
+                    compatible_format: Format::R8_UNORM,
+                },
+                Plane {
+                    width_divisor: 2u8,
+                    height_divisor: 2u8,
+                    compatible_format: Format::R8_UNORM,
                 },
             ],
             _ => &[],
@@ -4616,44 +4616,6 @@ impl FormatExt for Format {
     }
     fn aspect_flags(self) -> ImageAspectFlags {
         match self {
-            Self::S8_UINT => ImageAspectFlags::STENCIL,
-            Self::G8_B8R8_2PLANE_420_UNORM
-            | Self::G8_B8R8_2PLANE_422_UNORM
-            | Self::G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16
-            | Self::G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16
-            | Self::G12X4_B12X4R12X4_2PLANE_420_UNORM_3PACK16
-            | Self::G12X4_B12X4R12X4_2PLANE_422_UNORM_3PACK16
-            | Self::G16_B16R16_2PLANE_420_UNORM
-            | Self::G16_B16R16_2PLANE_422_UNORM
-            | Self::G8_B8R8_2PLANE_444_UNORM
-            | Self::G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16
-            | Self::G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16
-            | Self::G16_B16R16_2PLANE_444_UNORM => {
-                ImageAspectFlags::COLOR | ImageAspectFlags::PLANE_0 | ImageAspectFlags::PLANE_1
-            }
-            Self::D16_UNORM_S8_UINT | Self::D24_UNORM_S8_UINT | Self::D32_SFLOAT_S8_UINT => {
-                ImageAspectFlags::DEPTH | ImageAspectFlags::STENCIL
-            }
-            Self::D16_UNORM | Self::X8_D24_UNORM_PACK32 | Self::D32_SFLOAT => {
-                ImageAspectFlags::DEPTH
-            }
-            Self::G8_B8_R8_3PLANE_420_UNORM
-            | Self::G8_B8_R8_3PLANE_422_UNORM
-            | Self::G8_B8_R8_3PLANE_444_UNORM
-            | Self::G10X6_B10X6_R10X6_3PLANE_420_UNORM_3PACK16
-            | Self::G10X6_B10X6_R10X6_3PLANE_422_UNORM_3PACK16
-            | Self::G10X6_B10X6_R10X6_3PLANE_444_UNORM_3PACK16
-            | Self::G12X4_B12X4_R12X4_3PLANE_420_UNORM_3PACK16
-            | Self::G12X4_B12X4_R12X4_3PLANE_422_UNORM_3PACK16
-            | Self::G12X4_B12X4_R12X4_3PLANE_444_UNORM_3PACK16
-            | Self::G16_B16_R16_3PLANE_420_UNORM
-            | Self::G16_B16_R16_3PLANE_422_UNORM
-            | Self::G16_B16_R16_3PLANE_444_UNORM => {
-                ImageAspectFlags::COLOR
-                    | ImageAspectFlags::PLANE_0
-                    | ImageAspectFlags::PLANE_1
-                    | ImageAspectFlags::PLANE_2
-            }
             Self::R4G4_UNORM_PACK8
             | Self::R4G4B4A4_UNORM_PACK16
             | Self::B4G4R4A4_UNORM_PACK16
@@ -4800,6 +4762,44 @@ impl FormatExt for Format {
             | Self::A4R4G4B4_UNORM_PACK16
             | Self::A4B4G4R4_UNORM_PACK16
             | Self::R16G16_S10_5_NV => ImageAspectFlags::COLOR,
+            Self::D16_UNORM | Self::X8_D24_UNORM_PACK32 | Self::D32_SFLOAT => {
+                ImageAspectFlags::DEPTH
+            }
+            Self::S8_UINT => ImageAspectFlags::STENCIL,
+            Self::D16_UNORM_S8_UINT | Self::D24_UNORM_S8_UINT | Self::D32_SFLOAT_S8_UINT => {
+                ImageAspectFlags::DEPTH | ImageAspectFlags::STENCIL
+            }
+            Self::G8_B8R8_2PLANE_420_UNORM
+            | Self::G8_B8R8_2PLANE_422_UNORM
+            | Self::G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16
+            | Self::G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16
+            | Self::G12X4_B12X4R12X4_2PLANE_420_UNORM_3PACK16
+            | Self::G12X4_B12X4R12X4_2PLANE_422_UNORM_3PACK16
+            | Self::G16_B16R16_2PLANE_420_UNORM
+            | Self::G16_B16R16_2PLANE_422_UNORM
+            | Self::G8_B8R8_2PLANE_444_UNORM
+            | Self::G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16
+            | Self::G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16
+            | Self::G16_B16R16_2PLANE_444_UNORM => {
+                ImageAspectFlags::COLOR | ImageAspectFlags::PLANE_0 | ImageAspectFlags::PLANE_1
+            }
+            Self::G8_B8_R8_3PLANE_420_UNORM
+            | Self::G8_B8_R8_3PLANE_422_UNORM
+            | Self::G8_B8_R8_3PLANE_444_UNORM
+            | Self::G10X6_B10X6_R10X6_3PLANE_420_UNORM_3PACK16
+            | Self::G10X6_B10X6_R10X6_3PLANE_422_UNORM_3PACK16
+            | Self::G10X6_B10X6_R10X6_3PLANE_444_UNORM_3PACK16
+            | Self::G12X4_B12X4_R12X4_3PLANE_420_UNORM_3PACK16
+            | Self::G12X4_B12X4_R12X4_3PLANE_422_UNORM_3PACK16
+            | Self::G12X4_B12X4_R12X4_3PLANE_444_UNORM_3PACK16
+            | Self::G16_B16_R16_3PLANE_420_UNORM
+            | Self::G16_B16_R16_3PLANE_422_UNORM
+            | Self::G16_B16_R16_3PLANE_444_UNORM => {
+                ImageAspectFlags::COLOR
+                    | ImageAspectFlags::PLANE_0
+                    | ImageAspectFlags::PLANE_1
+                    | ImageAspectFlags::PLANE_2
+            }
             _ => panic!("Unknown format vk::Format({:?})", self.as_raw()),
         }
     }
