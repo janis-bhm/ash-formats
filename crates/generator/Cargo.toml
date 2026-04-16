@@ -1,0 +1,15 @@
+[package]
+name = "formats-generator"
+version = "0.1.0"
+edition = "2024"
+
+[[bin]]
+name = "ash-formats-generator"
+path = "src/main.rs"
+
+[dependencies]
+generator = { path = "../../ash/generator" }
+heck = "0.5.0"
+proc-macro2 = "1.0.106"
+quote = "1.0.45"
+vk-parse = { version = "0.20.0" }

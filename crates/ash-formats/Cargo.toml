@@ -1,0 +1,11 @@
+[package]
+name = "ash-formats"
+version = "0.1.0"
+edition = "2024"
+
+[features]
+default = ["debug"]
+debug = ["ash/debug"]
+
+[dependencies]
+ash = { version ="0.38", default-features = false }

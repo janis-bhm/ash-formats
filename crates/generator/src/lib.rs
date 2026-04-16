@@ -1,5 +1,5 @@
 use std::{
-    collections::{BTreeMap, HashMap},
+    collections::{BTreeMap, BTreeSet, HashMap},
     path::Path,
     str::FromStr,
 };
@@ -199,6 +199,83 @@ struct Plane<'a> {
     compatible_format: &'a str,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+struct AspectMask(u8);
+
+impl core::ops::BitOr for AspectMask {
+    type Output = Self;
+
+    fn bitor(self, rhs: Self) -> Self::Output {
+        Self(self.0 | rhs.0)
+    }
+}
+
+impl core::ops::BitOrAssign for AspectMask {
+    fn bitor_assign(&mut self, rhs: Self) {
+        self.0 |= rhs.0;
+    }
+}
+
+impl From<ComponentName> for AspectMask {
+    fn from(name: ComponentName) -> Self {
+        match name {
+            ComponentName::R | ComponentName::G | ComponentName::B | ComponentName::A => {
+                Self::COLOR
+            }
+            ComponentName::D => Self::DEPTH,
+            ComponentName::S => Self::STENCIL,
+        }
+    }
+}
+
+impl AspectMask {
+    const COLOR: Self = Self(0b0000_0001);
+    const DEPTH: Self = Self(0b0000_0010);
+    const STENCIL: Self = Self(0b0000_0100);
+    const PLANE_0: Self = Self(0b0000_1000);
+    const PLANE_1: Self = Self(0b0001_0000);
+    const PLANE_2: Self = Self(0b0010_0000);
+
+    fn is_empty(self) -> bool {
+        self.0 == 0
+    }
+
+    fn plane(i: u8) -> Self {
+        match i {
+            0 => Self::PLANE_0,
+            1 => Self::PLANE_1,
+            2 => Self::PLANE_2,
+            _ => panic!("Invalid plane index: {i}"),
+        }
+    }
+
+    fn iter(self) -> impl Iterator<Item = Self> {
+        struct BitIter {
+            bits: u8,
+            pos: u8,
+        }
+        impl Iterator for BitIter {
+            type Item = u8;
+            fn next(&mut self) -> Option<Self::Item> {
+                if self.pos >= u8::BITS as u8 || self.bits == 0 {
+                    None
+                } else {
+                    let step = self.bits.trailing_zeros() as u8 + 1;
+                    self.bits >>= step;
+                    self.pos += step;
+                    Some(1 << (self.pos - 1))
+                }
+            }
+        }
+
+        BitIter {
+            bits: self.0,
+            pos: 0,
+        }
+        .map(AspectMask)
+    }
+}
+
 pub fn write_source_code<P: AsRef<Path>>(vk_headers_dir: &Path, src_dir: P) {
     let vk_xml = vk_headers_dir.join("registry/vk.xml");
     use std::fs::File;
@@ -225,6 +302,7 @@ pub fn write_source_code<P: AsRef<Path>>(vk_headers_dir: &Path, src_dir: P) {
 
     let mut components = HashMap::<Vec<Component>, Vec<&str>>::new();
     let mut planes = HashMap::<Vec<Plane>, Vec<&str>>::new();
+    let mut aspects = HashMap::<AspectMask, Vec<&str>>::new();
 
     formats.iter().for_each(|format| {
         let name = &format.name;
@@ -271,6 +349,7 @@ pub fn write_source_code<P: AsRef<Path>>(vk_headers_dir: &Path, src_dir: P) {
 
         let mut comps = Vec::new();
         let mut plns = Vec::new();
+        let mut aspect_mask = AspectMask(0);
         format.children.iter().for_each(|child| match child {
             vk_parse::FormatChild::Component {
                 name,
@@ -284,6 +363,7 @@ pub fn write_source_code<P: AsRef<Path>>(vk_headers_dir: &Path, src_dir: P) {
                     NumericFormat::from_str(numericFormat),
                     u8::from_str(bits),
                 ) {
+                    aspect_mask |= AspectMask::from(name);
                     comps.push(Component {
                         name,
                         numeric_format,
@@ -299,6 +379,7 @@ pub fn write_source_code<P: AsRef<Path>>(vk_headers_dir: &Path, src_dir: P) {
                 compatible,
                 ..
             } => {
+                aspect_mask |= AspectMask::plane(*index);
                 plns.push(Plane {
                     index: *index,
                     width_divisor: *widthDivisor,
@@ -311,6 +392,10 @@ pub fn write_source_code<P: AsRef<Path>>(vk_headers_dir: &Path, src_dir: P) {
 
         if !comps.is_empty() {
             components.entry(comps).or_default().push(name);
+        }
+
+        if !aspect_mask.is_empty() {
+            aspects.entry(aspect_mask).or_default().push(name);
         }
 
         if !plns.is_empty() {
@@ -374,12 +459,36 @@ pub fn write_source_code<P: AsRef<Path>>(vk_headers_dir: &Path, src_dir: P) {
             /// The compression scheme of the format, if the format is a compressed format.
             fn compression(self) -> Option<Compression>;
             /// The components (channels) of the format.
-            fn components(self) -> &[Component];
+            fn components(self) -> &'static [Component];
             /// For multi-planar formats, the planes of the format. For
             /// single-plane formats, this returns an empty slice.
-            fn planes(self) -> &[Plane];
+            fn planes(self) -> &'static [Plane];
+            /// The aspect flags corresponding to the format. For most formats,
+            /// this will simply be [`ImageAspectFlags::COLOR`].
+            fn aspect_flags(self) -> ImageAspectFlags;
         }
     };
+
+    let aspect_flags = aspects.into_iter().map(|(aspects, formats)| {
+        let formats = formats
+            .iter()
+            .map(|f| generator::variant_ident("VkFormat", f))
+            .map(|f| quote! { Self::#f });
+
+        let aspect_flags = aspects.iter().map(|aspect| match aspect {
+            AspectMask::COLOR => quote! { ImageAspectFlags::COLOR },
+            AspectMask::DEPTH => quote! { ImageAspectFlags::DEPTH },
+            AspectMask::STENCIL => quote! { ImageAspectFlags::STENCIL },
+            AspectMask::PLANE_0 => quote! { ImageAspectFlags::PLANE_0 },
+            AspectMask::PLANE_1 => quote! { ImageAspectFlags::PLANE_1 },
+            AspectMask::PLANE_2 => quote! { ImageAspectFlags::PLANE_2 },
+            _ => panic!("Invalid aspect mask: {:?}", aspect),
+        });
+
+        quote! {
+            #( #formats )|* => #( #aspect_flags )|*,
+        }
+    });
 
     let planes = planes.into_iter().map(|(planes, formats)| {
         let formats = formats
@@ -411,7 +520,7 @@ pub fn write_source_code<P: AsRef<Path>>(vk_headers_dir: &Path, src_dir: P) {
         }
     });
 
-    let components = components.into_iter().map(|(components, formats)| {
+    let components = components.iter().map(|(components, formats)| {
         let formats = formats
             .iter()
             .map(|f| generator::variant_ident("VkFormat", f))
@@ -425,14 +534,16 @@ pub fn write_source_code<P: AsRef<Path>>(vk_headers_dir: &Path, src_dir: P) {
                 plane_index,
             } = c;
 
-            let plane_index = plane_index.map(|i| quote! { plane_index: #i, });
+            let plane_index = plane_index
+                .map(|i| quote! { Some(#i) })
+                .unwrap_or(quote! { None });
 
             quote! {
                 Component {
                     name: ComponentName::#name,
                     numeric_format: NumericFormat::#numeric_format,
                     bits: #bits,
-                    #plane_index
+                    plane_index: #plane_index,
                 }
             }
         });
@@ -449,7 +560,7 @@ pub fn write_source_code<P: AsRef<Path>>(vk_headers_dir: &Path, src_dir: P) {
             .map(|f| quote! { Self::#f });
 
         quote! {
-            #( #formats )|* => Some(#chroma),
+            #( #formats )|* => Some(Chroma::#chroma),
         }
     });
 
@@ -460,7 +571,7 @@ pub fn write_source_code<P: AsRef<Path>>(vk_headers_dir: &Path, src_dir: P) {
             .map(|f| quote! { Self::#f });
 
         quote! {
-            #( #formats )|* => Some(#compression),
+            #( #formats )|* => Some(Compression::#compression),
         }
     });
 
@@ -572,6 +683,7 @@ pub fn write_source_code<P: AsRef<Path>>(vk_headers_dir: &Path, src_dir: P) {
             fn block_size(self) -> u8 {
                 match self {
                     #(#block_sizes)*
+                    _ => panic!("Unknown format vk::Format({:?})", self.as_raw()),
                 }
             }
             fn block_extent(self) -> (u8, u8, u8) {
@@ -583,6 +695,7 @@ pub fn write_source_code<P: AsRef<Path>>(vk_headers_dir: &Path, src_dir: P) {
             fn texels_per_block(self) -> u8 {
                 match self {
                     #(#texels_per_block)*
+                    _ => panic!("Unknown format vk::Format({:?})", self.as_raw()),
                 }
             }
             fn packed(self) -> Option<u8> {
@@ -594,6 +707,7 @@ pub fn write_source_code<P: AsRef<Path>>(vk_headers_dir: &Path, src_dir: P) {
             fn format_class(self) -> FormatClass {
                 match self {
                     #(#format_classes)*
+                    _ => panic!("Unknown format vk::Format({:?})", self.as_raw()),
                 }
             }
             fn chroma(self) -> Option<Chroma> {
@@ -608,18 +722,24 @@ pub fn write_source_code<P: AsRef<Path>>(vk_headers_dir: &Path, src_dir: P) {
                     _ => None,
                 }
             }
-            fn components(self) -> &[Component] {
+            fn components(self) -> &'static [Component] {
                 match self {
                     #(#components)*
+                    _ => panic!("Unknown format vk::Format({:?})", self.as_raw()),
                 }
             }
-            fn planes(self) -> &[Plane] {
+            fn planes(self) -> &'static [Plane] {
                 match self {
                     #(#planes)*
                     _ => &[],
                 }
             }
-
+            fn aspect_flags(self) -> ImageAspectFlags {
+                match self {
+                    #(#aspect_flags)*
+                    _ => panic!("Unknown format vk::Format({:?})", self.as_raw()),
+                }
+            }
         }
     };
 
@@ -694,7 +814,7 @@ pub fn write_source_code<P: AsRef<Path>>(vk_headers_dir: &Path, src_dir: P) {
     };
 
     let source_code = quote! {
-        use ash::vk::Format;
+        use ash::vk::{Format, ImageAspectFlags};
 
         #format_ext
 
