@@ -2,6 +2,18 @@
 name = "ash-formats"
 version = "0.1.0"
 edition = "2024"
+authors = [ "janis <janis@nirgendwo.xyz>" ]
+license = "MIT OR Apache-2.0"
+description = "Vulkan format utilities for ash"
+repository = "https://github.com/janis-bhm/ash-formats"
+readme = "../../README.md"
+keywords = ["ash", "vulkan", "formats", "utilities", "graphics", "gamedev"]
+categories = [
+    "api-bindings",
+    "game-development",
+    "graphics",
+    "rendering::graphics-api"
+    ]
 
 [features]
 default = ["debug"]
