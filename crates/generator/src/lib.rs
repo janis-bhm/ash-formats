@@ -404,12 +404,15 @@ pub fn write_source_code<P: AsRef<Path>>(vk_headers_dir: &Path, src_dir: P) {
         pub trait FormatExt {
             /// The size of a block of the format in bytes. For uncompressed
             /// formats, this is the size of a texel.
+            /// For `Format::UNDEFINED`, this returns `0`.
             fn block_size(self) -> DeviceSize;
             /// The dimensions of a block of the format in texels. For
             /// uncompressed formats, this is always (1, 1, 1).
+            /// For `Format::UNDEFINED`, this returns `(1, 1, 1)`.
             fn block_extent(self) -> (u8, u8, u8);
             /// The number of texels in a block of the format. For uncompressed
             /// formats, this is always 1.
+            /// For `Format::UNDEFINED`, this returns `0`.
             fn texels_per_block(self) -> u8;
             /// For packed formats, this describes how the components are packed
             /// into byte-multiples.
@@ -441,6 +444,7 @@ pub fn write_source_code<P: AsRef<Path>>(vk_headers_dir: &Path, src_dir: P) {
             ///     }
             /// }
             /// ```
+            /// For `Format::UNDEFINED`, this returns `None`.
             fn packed(self) -> Option<u8>;
             /// The format class of the format. Formats in the same class are
             /// comatible with each other. Images created with the
@@ -448,19 +452,25 @@ pub fn write_source_code<P: AsRef<Path>>(vk_headers_dir: &Path, src_dir: P) {
             /// may be used to create image views of any format in the same
             /// format class as the image's format, or for multi-planar formats,
             /// image views for specific planes of the image.
+            /// Panics for `Format::UNDEFINED`, which has no format class.
             fn format_class(self) -> FormatClass;
             /// The chroma subsampling scheme of the format, if the format is a
             /// chroma subsampled format.
+            /// For `Format::UNDEFINED`, this returns `None`.
             fn chroma(self) -> Option<Chroma>;
             /// The compression scheme of the format, if the format is a compressed format.
+            /// For `Format::UNDEFINED`, this returns `None`.
             fn compression(self) -> Option<Compression>;
             /// The components (channels) of the format.
+            /// For `Format::UNDEFINED`, this returns an empty slice.
             fn components(self) -> &'static [Component];
             /// For multi-planar formats, the planes of the format. For
             /// single-plane formats, this returns an empty slice.
+            /// For `Format::UNDEFINED`, this returns an empty slice.
             fn planes(self) -> &'static [Plane];
             /// The aspect flags corresponding to the format. For most formats,
             /// this will simply be [`ImageAspectFlags::COLOR`].
+            /// For `Format::UNDEFINED`, this returns empty flags.
             fn aspect_flags(self) -> ImageAspectFlags;
         }
     };
@@ -680,60 +690,70 @@ pub fn write_source_code<P: AsRef<Path>>(vk_headers_dir: &Path, src_dir: P) {
         impl FormatExt for Format {
             fn block_size(self) -> DeviceSize {
                 match self {
+                    Self::UNDEFINED => 0u64,
                     #(#block_sizes)*
                     _ => panic!("Unknown format vk::Format({:?})", self.as_raw()),
                 }
             }
             fn block_extent(self) -> (u8, u8, u8) {
                 match self {
+                    Self::UNDEFINED => (1u8, 1u8, 1u8),
                     #(#block_extents)*
                     _ => (1u8, 1u8, 1u8),
                 }
             }
             fn texels_per_block(self) -> u8 {
                 match self {
+                    Self::UNDEFINED => 0u8,
                     #(#texels_per_block)*
                     _ => panic!("Unknown format vk::Format({:?})", self.as_raw()),
                 }
             }
             fn packed(self) -> Option<u8> {
                 match self {
+                    Self::UNDEFINED => None,
                     #(#packed)*
                     _ => None,
                 }
             }
             fn format_class(self) -> FormatClass {
                 match self {
+                    Self::UNDEFINED => panic!("Format::UNDEFINED has no format class"),
                     #(#format_classes)*
                     _ => panic!("Unknown format vk::Format({:?})", self.as_raw()),
                 }
             }
             fn chroma(self) -> Option<Chroma> {
                 match self {
+                    Self::UNDEFINED => None,
                     #(#chromas)*
                     _ => None,
                 }
             }
             fn compression(self) -> Option<Compression> {
                 match self {
+                    Self::UNDEFINED => None,
                     #(#compressions)*
                     _ => None,
                 }
             }
             fn components(self) -> &'static [Component] {
                 match self {
+                    Self::UNDEFINED => &[],
                     #(#components)*
                     _ => panic!("Unknown format vk::Format({:?})", self.as_raw()),
                 }
             }
             fn planes(self) -> &'static [Plane] {
                 match self {
+                    Self::UNDEFINED => &[],
                     #(#planes)*
                     _ => &[],
                 }
             }
             fn aspect_flags(self) -> ImageAspectFlags {
                 match self {
+                    Self::UNDEFINED => ImageAspectFlags::empty(),
                     #(#aspect_flags)*
                     _ => panic!("Unknown format vk::Format({:?})", self.as_raw()),
                 }

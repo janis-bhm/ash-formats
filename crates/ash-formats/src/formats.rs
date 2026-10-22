@@ -2,12 +2,15 @@ use ash::vk::{DeviceSize, Format, ImageAspectFlags};
 pub trait FormatExt {
     #[doc = r" The size of a block of the format in bytes. For uncompressed"]
     #[doc = r" formats, this is the size of a texel."]
+    #[doc = r" For `Format::UNDEFINED`, this returns `0`."]
     fn block_size(self) -> DeviceSize;
     #[doc = r" The dimensions of a block of the format in texels. For"]
     #[doc = r" uncompressed formats, this is always (1, 1, 1)."]
+    #[doc = r" For `Format::UNDEFINED`, this returns `(1, 1, 1)`."]
     fn block_extent(self) -> (u8, u8, u8);
     #[doc = r" The number of texels in a block of the format. For uncompressed"]
     #[doc = r" formats, this is always 1."]
+    #[doc = r" For `Format::UNDEFINED`, this returns `0`."]
     fn texels_per_block(self) -> u8;
     #[doc = r" For packed formats, this describes how the components are packed"]
     #[doc = r" into byte-multiples."]
@@ -39,6 +42,7 @@ pub trait FormatExt {
     #[doc = r"     }"]
     #[doc = r" }"]
     #[doc = r" ```"]
+    #[doc = r" For `Format::UNDEFINED`, this returns `None`."]
     fn packed(self) -> Option<u8>;
     #[doc = r" The format class of the format. Formats in the same class are"]
     #[doc = r" comatible with each other. Images created with the"]
@@ -46,19 +50,25 @@ pub trait FormatExt {
     #[doc = r" may be used to create image views of any format in the same"]
     #[doc = r" format class as the image's format, or for multi-planar formats,"]
     #[doc = r" image views for specific planes of the image."]
+    #[doc = r" Panics for `Format::UNDEFINED`, which has no format class."]
     fn format_class(self) -> FormatClass;
     #[doc = r" The chroma subsampling scheme of the format, if the format is a"]
     #[doc = r" chroma subsampled format."]
+    #[doc = r" For `Format::UNDEFINED`, this returns `None`."]
     fn chroma(self) -> Option<Chroma>;
     #[doc = r" The compression scheme of the format, if the format is a compressed format."]
+    #[doc = r" For `Format::UNDEFINED`, this returns `None`."]
     fn compression(self) -> Option<Compression>;
     #[doc = r" The components (channels) of the format."]
+    #[doc = r" For `Format::UNDEFINED`, this returns an empty slice."]
     fn components(self) -> &'static [Component];
     #[doc = r" For multi-planar formats, the planes of the format. For"]
     #[doc = r" single-plane formats, this returns an empty slice."]
+    #[doc = r" For `Format::UNDEFINED`, this returns an empty slice."]
     fn planes(self) -> &'static [Plane];
     #[doc = r" The aspect flags corresponding to the format. For most formats,"]
     #[doc = r" this will simply be [`ImageAspectFlags::COLOR`]."]
+    #[doc = r" For `Format::UNDEFINED`, this returns empty flags."]
     fn aspect_flags(self) -> ImageAspectFlags;
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -212,6 +222,7 @@ pub struct Plane {
 impl FormatExt for Format {
     fn block_size(self) -> DeviceSize {
         match self {
+            Self::UNDEFINED => 0u64,
             Self::R4G4_UNORM_PACK8
             | Self::A8_UNORM_KHR
             | Self::R8_UNORM
@@ -460,6 +471,7 @@ impl FormatExt for Format {
     }
     fn block_extent(self) -> (u8, u8, u8) {
         match self {
+            Self::UNDEFINED => (1u8, 1u8, 1u8),
             Self::G8B8G8R8_422_UNORM
             | Self::B8G8R8G8_422_UNORM
             | Self::G10X6B10X6G10X6R10X6_422_UNORM_4PACK16
@@ -549,6 +561,7 @@ impl FormatExt for Format {
     }
     fn texels_per_block(self) -> u8 {
         match self {
+            Self::UNDEFINED => 0u8,
             Self::R4G4_UNORM_PACK8
             | Self::R4G4B4A4_UNORM_PACK16
             | Self::B4G4R4A4_UNORM_PACK16
@@ -803,6 +816,7 @@ impl FormatExt for Format {
     }
     fn packed(self) -> Option<u8> {
         match self {
+            Self::UNDEFINED => None,
             Self::R4G4_UNORM_PACK8 => Some(8u8),
             Self::R4G4B4A4_UNORM_PACK16
             | Self::B4G4R4A4_UNORM_PACK16
@@ -863,6 +877,7 @@ impl FormatExt for Format {
     }
     fn format_class(self) -> FormatClass {
         match self {
+            Self::UNDEFINED => panic!("Format::UNDEFINED has no format class"),
             Self::G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16 => FormatClass::Bit10Plane2Chroma420,
             Self::G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16 => FormatClass::Bit10Plane2Chroma422,
             Self::G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16 => FormatClass::Bit10Plane2Chroma444,
@@ -1112,6 +1127,7 @@ impl FormatExt for Format {
     }
     fn chroma(self) -> Option<Chroma> {
         match self {
+            Self::UNDEFINED => None,
             Self::G8_B8_R8_3PLANE_420_UNORM
             | Self::G8_B8R8_2PLANE_420_UNORM
             | Self::G10X6_B10X6_R10X6_3PLANE_420_UNORM_3PACK16
@@ -1151,6 +1167,7 @@ impl FormatExt for Format {
     }
     fn compression(self) -> Option<Compression> {
         match self {
+            Self::UNDEFINED => None,
             Self::BC1_RGB_UNORM_BLOCK
             | Self::BC1_RGB_SRGB_BLOCK
             | Self::BC1_RGBA_UNORM_BLOCK
@@ -1232,6 +1249,7 @@ impl FormatExt for Format {
     }
     fn components(self) -> &'static [Component] {
         match self {
+            Self::UNDEFINED => &[],
             Self::R8_UINT => &[Component {
                 name: ComponentName::R,
                 numeric_format: NumericFormat::UInt,
@@ -4263,6 +4281,7 @@ impl FormatExt for Format {
     }
     fn planes(self) -> &'static [Plane] {
         match self {
+            Self::UNDEFINED => &[],
             Self::G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16 => &[
                 Plane {
                     width_divisor: 1u8,
@@ -4616,6 +4635,7 @@ impl FormatExt for Format {
     }
     fn aspect_flags(self) -> ImageAspectFlags {
         match self {
+            Self::UNDEFINED => ImageAspectFlags::empty(),
             Self::R4G4_UNORM_PACK8
             | Self::R4G4B4A4_UNORM_PACK16
             | Self::B4G4R4A4_UNORM_PACK16
