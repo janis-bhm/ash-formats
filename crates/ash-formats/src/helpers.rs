@@ -109,27 +109,114 @@ pub trait FormatHelpers: FormatExt {
     ///
     /// Depth/stencil clears use [`vk::ClearDepthStencilValue`] instead. For
     /// `Format::UNDEFINED` and depth/stencil formats, this returns `Float32`.
+    /// Assumes that `color` is in the range `[0.0, 1.0]`.
     fn clear_value(self, color: [f32; 4]) -> vk::ClearColorValue
     where
         Self: Copy,
     {
         let components = self.components();
-        if components
+        let nf = components
             .iter()
-            .any(|component| component.numeric_format == NumericFormat::UInt)
-        {
-            vk::ClearColorValue {
-                uint32: color.map(|value| value as u32),
+            .map(|c| c.numeric_format)
+            .next()
+            .unwrap_or(NumericFormat::UNorm);
+
+        struct ColorValues([f32; 4]);
+
+        impl core::ops::Index<ComponentName> for ColorValues {
+            type Output = f32;
+
+            fn index(&self, index: ComponentName) -> &Self::Output {
+                match index {
+                    ComponentName::R => &self.0[0],
+                    ComponentName::G => &self.0[1],
+                    ComponentName::B => &self.0[2],
+                    ComponentName::A => &self.0[3],
+                    _ => panic!("Invalid component name for color value"),
+                }
             }
-        } else if components
-            .iter()
-            .any(|component| component.numeric_format == NumericFormat::SInt)
-        {
-            vk::ClearColorValue {
-                int32: color.map(|value| value as i32),
+        }
+
+        let color = ColorValues(color);
+
+        match nf {
+            NumericFormat::UInt => {
+                let mut components = components.iter().map(|c| {
+                    let value = color[c.name];
+                    let normalized = value * ((1i32 << c.bits) - 1) as f32;
+                    normalized as u32
+                });
+
+                vk::ClearColorValue {
+                    uint32: core::array::from_fn(|_| components.next().unwrap_or(0)),
+                }
             }
-        } else {
-            vk::ClearColorValue { float32: color }
+            NumericFormat::SInt => {
+                let mut components = components.iter().map(|c| {
+                    let value = color[c.name];
+                    let normalized = value * ((1i32 << c.bits) - 1) as f32;
+                    normalized as i32 - 128
+                });
+
+                vk::ClearColorValue {
+                    int32: core::array::from_fn(|_| components.next().unwrap_or(0)),
+                }
+            }
+            NumericFormat::UNorm => {
+                let mut components = components.iter().map(|c| color[c.name]);
+
+                vk::ClearColorValue {
+                    float32: core::array::from_fn(|_| components.next().unwrap_or(0.0)),
+                }
+            }
+            NumericFormat::SNorm => {
+                let mut components = components.iter().map(|c| color[c.name] * 2.0 - 1.0);
+
+                vk::ClearColorValue {
+                    float32: core::array::from_fn(|_| components.next().unwrap_or(0.0)),
+                }
+            }
+            NumericFormat::SRgb => {
+                let mut components = components.iter().map(|c| color[c.name]);
+
+                vk::ClearColorValue {
+                    float32: core::array::from_fn(|_| components.next().unwrap_or(0.0)),
+                }
+            }
+            NumericFormat::UScaled => {
+                let mut components = components.iter().map(|c| {
+                    let value = color[c.name];
+                    value * ((1u32 << c.bits) - 1) as f32
+                });
+
+                vk::ClearColorValue {
+                    float32: core::array::from_fn(|_| components.next().unwrap_or(0.0)),
+                }
+            }
+            NumericFormat::SScaled => {
+                let mut components = components.iter().map(|c| {
+                    let value = color[c.name];
+                    value * ((1i32 << (c.bits - 1)) - 1) as f32
+                });
+
+                vk::ClearColorValue {
+                    float32: core::array::from_fn(|_| components.next().unwrap_or(0.0)),
+                }
+            }
+            NumericFormat::SFloat => {
+                let mut components = components.iter().map(|c| color[c.name] * 2.0 - 1.0);
+
+                vk::ClearColorValue {
+                    float32: core::array::from_fn(|_| components.next().unwrap_or(0.0)),
+                }
+            }
+            NumericFormat::UFloat => {
+                let mut components = components.iter().map(|c| color[c.name]);
+
+                vk::ClearColorValue {
+                    float32: core::array::from_fn(|_| components.next().unwrap_or(0.0)),
+                }
+            }
         }
     }
 
@@ -446,18 +533,22 @@ mod tests {
 
     #[test]
     fn clear_value_uses_numeric_format() {
-        let color = [1.0, 2.0, 3.0, 4.0];
+        let color = [1.0, 0.5, 0.75, 0.25];
         assert_eq!(
             clear_float(Format::R8G8B8A8_UNORM.clear_value(color)),
             color
         );
         assert_eq!(
             clear_uint(Format::R8G8_UINT.clear_value(color)),
-            [1, 2, 3, 4]
+            [255, 127, 0, 0]
         );
         assert_eq!(
             clear_int(Format::R8G8_SINT.clear_value(color)),
-            [1, 2, 3, 4]
+            [127, -1, 0, 0]
+        );
+        assert_eq!(
+            clear_int(Format::A2R10G10B10_UINT_PACK32.clear_value(color)),
+            [0, 1023, 511, 767]
         );
     }
 
