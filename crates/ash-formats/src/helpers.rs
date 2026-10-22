@@ -2,28 +2,6 @@ use ash::vk::{self, DeviceSize, Format};
 
 use crate::{Component, ComponentName, FormatExt, NumericFormat};
 
-/// Format-independent helpers for mip extents.
-///
-/// Dimensions are clamped to at least one texel, including when
-/// `mip_level >= 32`.
-pub fn mip_level_extent(extent: [u32; 3], mip_level: u32) -> [u32; 3] {
-    extent.map(|e| {
-        if mip_level < u32::BITS {
-            (e >> mip_level).max(1)
-        } else {
-            1
-        }
-    })
-}
-
-/// Returns the number of mip levels needed to reduce the largest extent dimension to one.
-///
-/// Zero dimensions are treated as one; therefore `[0, 0, 0]` has one mip level.
-pub fn mip_level_count(extent: [u32; 3]) -> u32 {
-    let largest = extent.iter().copied().max().unwrap_or(1).max(1);
-    u32::BITS - largest.leading_zeros()
-}
-
 /// Convenience utilities for formats implementing [`FormatExt`].
 pub trait FormatHelpers: FormatExt {
     /// Returns the byte pitch of a row of `width` texels.
@@ -70,25 +48,24 @@ pub trait FormatHelpers: FormatExt {
             * compatible.block_size()
     }
 
-    /// Returns the byte size of one layer at `mip_level` for this extent.
+    /// Returns the byte size of one layer for this extent.
     ///
     /// For multi-planar formats the sizes of all subsampled planes are summed.
     /// For `Format::UNDEFINED`, this returns `0`.
-    fn layer_size(self, extent: [u32; 3], mip_level: u32) -> DeviceSize
+    fn layer_size(self, extent: [u32; 3]) -> DeviceSize
     where
         Self: Copy,
     {
-        let mip_extent = mip_level_extent(extent, mip_level);
         if self.planes().is_empty() {
-            extent_block_size(mip_extent, self.block_extent(), self.block_size())
+            extent_block_size(extent, self.block_extent(), self.block_size())
         } else {
             self.planes()
                 .iter()
                 .map(|plane| {
                     let plane_extent = [
-                        mip_extent[0].div_ceil(u32::from(plane.width_divisor)),
-                        mip_extent[1].div_ceil(u32::from(plane.height_divisor)),
-                        mip_extent[2],
+                        extent[0].div_ceil(u32::from(plane.width_divisor)),
+                        extent[1].div_ceil(u32::from(plane.height_divisor)),
+                        extent[2],
                     ];
                     let compatible = plane.compatible_format;
                     extent_block_size(
@@ -101,25 +78,24 @@ pub trait FormatHelpers: FormatExt {
         }
     }
 
-    /// Returns the byte size of a single plane at `mip_level` for this extent.
+    /// Returns the byte size of a single plane for this extent.
     ///
     /// For `Format::UNDEFINED`, this panics because it has no planes.
     ///
     /// # Panics
     ///
     /// Panics for single-plane formats or when `plane_index` is out of range.
-    fn plane_layer_size(self, plane_index: u8, extent: [u32; 3], mip_level: u32) -> DeviceSize
+    fn plane_layer_size(self, plane_index: u8, extent: [u32; 3]) -> DeviceSize
     where
         Self: Copy,
     {
         let plane = self.planes().get(usize::from(plane_index)).expect(
             "plane_layer_size plane_index is out of range; use layer_size for single-plane formats",
         );
-        let mip_extent = mip_level_extent(extent, mip_level);
         let plane_extent = [
-            mip_extent[0].div_ceil(u32::from(plane.width_divisor)),
-            mip_extent[1].div_ceil(u32::from(plane.height_divisor)),
-            mip_extent[2],
+            extent[0].div_ceil(u32::from(plane.width_divisor)),
+            extent[1].div_ceil(u32::from(plane.height_divisor)),
+            extent[2],
         ];
         let compatible = plane.compatible_format;
         extent_block_size(
@@ -127,18 +103,6 @@ pub trait FormatHelpers: FormatExt {
             compatible.block_extent(),
             compatible.block_size(),
         )
-    }
-
-    /// Returns the total byte size of `mip_levels` levels for one layer.
-    ///
-    /// For `Format::UNDEFINED`, this returns `0`.
-    fn mip_chain_size(self, extent: [u32; 3], mip_levels: u32) -> DeviceSize
-    where
-        Self: Copy,
-    {
-        (0..mip_levels)
-            .map(|level| self.layer_size(extent, level))
-            .sum()
     }
 
     /// Creates a Vulkan clear color value suitable for color images.
@@ -393,7 +357,7 @@ fn extent_block_size(
 
 #[cfg(test)]
 mod tests {
-    use super::{FormatHelpers, mip_level_count, mip_level_extent};
+    use super::FormatHelpers;
     use crate::{ComponentName, FormatExt};
     use ash::vk::{ClearColorValue, Format};
 
@@ -470,14 +434,14 @@ mod tests {
         assert_eq!(Format::R8G8B8A8_UNORM.row_pitch(3), 12);
         assert_eq!(Format::BC1_RGB_UNORM_BLOCK.row_pitch(4), 8);
         assert_eq!(Format::BC1_RGB_UNORM_BLOCK.row_pitch(5), 16);
-        assert_eq!(Format::BC1_RGB_UNORM_BLOCK.layer_size([8, 8, 1], 0), 32);
-        assert_eq!(Format::BC1_RGB_UNORM_BLOCK.layer_size([8, 8, 1], 1), 8);
+        assert_eq!(Format::BC1_RGB_UNORM_BLOCK.layer_size([8, 8, 1]), 32);
+        assert_eq!(Format::BC1_RGB_UNORM_BLOCK.layer_size([4, 4, 1]), 8);
 
         let yuv = Format::G8_B8R8_2PLANE_420_UNORM;
-        assert_eq!(yuv.plane_layer_size(0, [3, 3, 1], 0), 9);
-        assert_eq!(yuv.plane_layer_size(1, [3, 3, 1], 0), 8);
-        assert_eq!(yuv.layer_size([3, 3, 1], 0), 17);
-        assert_eq!(yuv.mip_chain_size([4, 4, 1], 2), 30);
+        assert_eq!(yuv.plane_layer_size(0, [3, 3, 1]), 9);
+        assert_eq!(yuv.plane_layer_size(1, [3, 3, 1]), 8);
+        assert_eq!(yuv.layer_size([3, 3, 1]), 17);
+        assert_eq!(yuv.layer_size([4, 4, 1]), 24);
     }
 
     #[test]
@@ -538,14 +502,6 @@ mod tests {
     }
 
     #[test]
-    fn mip_helpers_clamp_and_count_levels() {
-        assert_eq!(mip_level_extent([7, 5, 3], 1), [3, 2, 1]);
-        assert_eq!(mip_level_extent([7, 5, 3], 32), [1, 1, 1]);
-        assert_eq!(mip_level_count([64, 32, 1]), 7);
-        assert_eq!(mip_level_count([0, 0, 0]), 1);
-    }
-
-    #[test]
     fn undefined_has_documented_empty_semantics() {
         let undefined = Format::UNDEFINED;
         assert_eq!(undefined.block_size(), 0);
@@ -559,8 +515,7 @@ mod tests {
         assert!(undefined.aspect_flags().is_empty());
         assert!(!undefined.is_vertex_format());
         assert_eq!(clear_float(undefined.clear_value([0.0; 4])), [0.0; 4]);
-        assert_eq!(undefined.layer_size([16, 16, 1], 0), 0);
-        assert_eq!(undefined.mip_chain_size([16, 16, 1], 4), 0);
+        assert_eq!(undefined.layer_size([16, 16, 1]), 0);
     }
 
     #[test]
