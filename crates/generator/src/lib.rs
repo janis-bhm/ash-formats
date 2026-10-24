@@ -1,6 +1,6 @@
 use std::{collections::BTreeMap, path::Path, str::FromStr};
 
-use heck::ToUpperCamelCase;
+use heck::{ToSnakeCase, ToUpperCamelCase};
 use quote::{ToTokens, format_ident, quote};
 
 macro_rules! get_variant {
@@ -860,4 +860,422 @@ pub fn write_source_code<P: AsRef<Path>>(vk_headers_dir: &Path, src_dir: P) {
     write_formatted(source_code.to_string().as_bytes(), vk_constants_file)
         .wait()
         .expect("Failed to format source code");
+}
+
+pub fn write_features_source_code<P: AsRef<Path>>(vk_headers_dir: &Path, src_dir: P) {
+    use std::fs::File;
+    use std::io::Write;
+
+    #[derive(Debug)]
+    struct FeatureStructInfo {
+        ident: proc_macro2::Ident,
+        fields: Vec<proc_macro2::Ident>,
+        structure_type: proc_macro2::Ident,
+    }
+
+    fn member_parts(member: &vk_parse::TypeMemberDefinition) -> (Option<&str>, Option<&str>) {
+        let mut ty = None;
+        let mut name = None;
+        for markup in &member.markup {
+            match markup {
+                vk_parse::TypeMemberMarkup::Type(value) => ty = Some(value.as_str()),
+                vk_parse::TypeMemberMarkup::Name(value) => name = Some(value.as_str()),
+                _ => {}
+            }
+        }
+        (ty, name)
+    }
+
+    let vk_xml = vk_headers_dir.join("registry/vk.xml");
+    let (spec2, errors) = vk_parse::parse_file(&vk_xml).expect("Invalid xml file");
+    if !errors.is_empty() {
+        eprintln!("vk_parse encountered one or more errors while parsing: {errors:?}");
+    }
+
+    let types = spec2
+        .0
+        .iter()
+        .filter_map(get_variant!(vk_parse::RegistryChild::Types))
+        .flat_map(|types| &types.children)
+        .filter_map(get_variant!(vk_parse::TypesChild::Type));
+
+    let mut base_fields = Vec::new();
+    let mut feature_structs = BTreeMap::<String, FeatureStructInfo>::new();
+    let tagged_structures = ash_tagged_structures();
+
+    for ty in types {
+        if ty.category.as_deref() != Some("struct") || ty.alias.is_some() {
+            continue;
+        }
+        let Some(name) = ty.name.as_deref() else {
+            continue;
+        };
+        let is_base_features = name == "VkPhysicalDeviceFeatures";
+        let is_features2 = name == "VkPhysicalDeviceFeatures2";
+        let extends_features2 = ty.structextends.as_deref().is_some_and(|extensions| {
+            extensions
+                .split(',')
+                .any(|extension| extension.trim() == "VkPhysicalDeviceFeatures2")
+        });
+        if !is_base_features && !is_features2 && !extends_features2 {
+            continue;
+        }
+
+        let vk_parse::TypeSpec::Members(members) = &ty.spec else {
+            continue;
+        };
+
+        let mut fields = Vec::new();
+        let mut invalid_feature_member = false;
+        for member in members {
+            let vk_parse::TypeMember::Definition(member) = member else {
+                continue;
+            };
+            let (member_type, member_name) = member_parts(member);
+            let Some(member_name) = member_name else {
+                continue;
+            };
+            if member_name == "sType" {
+                continue;
+            }
+            if member_name == "pNext" || member.api.is_some() {
+                continue;
+            }
+            if is_features2 {
+                continue;
+            }
+
+            let is_pointer_or_array =
+                member.len.is_some() || member.code.contains('*') || member.code.contains('[');
+            if member_type != Some("VkBool32") || is_pointer_or_array {
+                invalid_feature_member = true;
+                continue;
+            }
+            fields.push(format_ident!("{}", member_name.to_snake_case()));
+        }
+
+        if is_base_features {
+            if !invalid_feature_member && !fields.is_empty() {
+                base_fields = fields;
+            }
+            continue;
+        }
+        if is_features2 || invalid_feature_member || fields.is_empty() {
+            continue;
+        }
+
+        let ash_name = name.strip_prefix("Vk").unwrap();
+        let Some(structure_type) = tagged_structures.get(ash_name) else {
+            continue;
+        };
+        let ident = format_ident!("{ash_name}");
+        if ash_type_is_provisional(&ident) {
+            continue;
+        }
+        let structure_type = format_ident!("{structure_type}");
+        feature_structs.insert(
+            name.to_owned(),
+            FeatureStructInfo {
+                ident,
+                fields,
+                structure_type,
+            },
+        );
+    }
+
+    assert!(
+        !base_fields.is_empty(),
+        "VkPhysicalDeviceFeatures has no valid Bool32 fields"
+    );
+    assert!(
+        !feature_structs.is_empty(),
+        "No extension feature structures found"
+    );
+
+    let struct_impls = feature_structs.values().map(|info| {
+        let ident = &info.ident;
+        let structure_type = &info.structure_type;
+        let fields = &info.fields;
+        let mut contains_fields = fields.iter().map(|field| {
+            quote! { (self.#field & other.#field) == other.#field }
+        });
+        let first_contains = contains_fields.next().expect("feature fields are nonempty");
+        let unions = fields
+            .iter()
+            .map(|field| quote! { self.#field |= other.#field; });
+        quote! {
+            impl FeatureStruct for #ident<'_> {
+                const STRUCTURE_TYPE: StructureType = StructureType::#structure_type;
+
+                fn contains_fields(&self, other: &Self) -> bool {
+                    #first_contains #(&& #contains_fields)*
+                }
+
+                fn union_fields(&mut self, other: &Self) {
+                    #(#unions)*
+                }
+            }
+        }
+    });
+
+    let feature_match_arms = feature_structs.values().map(|info| {
+        let ident = &info.ident;
+        quote! {
+            <#ident<'static> as FeatureStruct>::STRUCTURE_TYPE => {
+                if !unsafe { $f(&*next.cast::<#ident<'static>>(), $context) } {
+                    break;
+                }
+            }
+        }
+    });
+
+    let mut base_contains = base_fields.iter().map(|field| {
+        quote! { (self.#field & other.#field) == other.#field }
+    });
+    let first_base_contains = base_contains
+        .next()
+        .expect("base feature fields are nonempty");
+    let base_unions = base_fields
+        .iter()
+        .map(|field| quote! { self.#field |= other.#field; });
+    let feature_delegates = feature_structs.values().map(|info| {
+        let ident = &info.ident;
+        quote! {
+            impl PhysicalDeviceFeaturesExt for #ident<'_> {
+                fn contains(&self, other: &Self) -> bool {
+                    self.contains_fields(other)
+                }
+
+                fn union(&mut self, other: &Self) {
+                    self.union_fields(other)
+                }
+            }
+        }
+    });
+
+    let source_code = quote! {
+        extern crate alloc;
+
+        use alloc::boxed::Box;
+        use core::ffi::c_void;
+        use core::ptr;
+        use ash::vk::*;
+
+        /// Field operations for an extension feature structure in a Vulkan `pNext` chain.
+        pub trait FeatureStruct: Copy {
+            const STRUCTURE_TYPE: StructureType;
+            fn contains_fields(&self, other: &Self) -> bool;
+            fn union_fields(&mut self, other: &Self);
+        }
+
+        #(#struct_impls)*
+
+        /// Set-like operations over physical-device feature structures.
+        ///
+        /// A feature is enabled when its `Bool32` field is nonzero. `contains`
+        /// checks that every feature enabled in `other` is enabled in `self`,
+        /// while `union` enables every feature enabled in `other`.
+        pub trait PhysicalDeviceFeaturesExt {
+            /// Returns true if every feature enabled in `other` is also enabled in `self`.
+            ///
+            /// For `PhysicalDeviceFeatures2`, extension structures present in
+            /// `other` but absent from `self` are treated as all-disabled.
+            ///
+            /// # Performance
+            ///
+            /// For `PhysicalDeviceFeatures` and individual feature structures this is
+            /// O(number of feature fields). For `PhysicalDeviceFeatures2` it walks both
+            /// `pNext` chains, and each node of `other`'s chain is looked up by
+            /// linear scan in `self`'s chain, i.e. O(n * m) in the chain lengths of
+            /// `self` and `other`. Avoid calling it in hot paths with long chains.
+            fn contains(&self, other: &Self) -> bool;
+            /// Enables in `self` every feature enabled in `other`.
+            ///
+            /// For `PhysicalDeviceFeatures2`, missing extension structures are
+            /// appended to `self`'s chain. Appended structures are intentionally
+            /// leaked because the chain may outlive this call.
+            fn union(&mut self, other: &Self);
+            /// Convenience: `self.union(other); self` (requires `Copy` and `Sized`).
+            fn unioned(mut self, other: &Self) -> Self where Self: Sized + Copy {
+                self.union(other);
+                self
+            }
+        }
+
+        impl PhysicalDeviceFeaturesExt for PhysicalDeviceFeatures {
+            fn contains(&self, other: &Self) -> bool {
+                #first_base_contains #(&& #base_contains)*
+            }
+
+            fn union(&mut self, other: &Self) {
+                #(#base_unions)*
+            }
+        }
+
+        #(#feature_delegates)*
+
+        impl<'a> PhysicalDeviceFeaturesExt for PhysicalDeviceFeatures2<'a> {
+            fn contains(&self, other: &Self) -> bool {
+                self.features.contains(&other.features)
+                    && unsafe { chain_contains(self.p_next, other.p_next) }
+            }
+
+            fn union(&mut self, other: &Self) {
+                self.features.union(&other.features);
+                unsafe { chain_union(&mut self.p_next, other.p_next) };
+            }
+        }
+
+        #[repr(C)]
+        struct Header {
+            s_type: StructureType,
+            p_next: *mut Header,
+        }
+
+        macro_rules! for_each_feature {
+            ($next:expr, $f:path, $context:expr) => {{
+                let mut next = ($next).cast::<Header>();
+                while !next.is_null() {
+                    match unsafe { (*next).s_type } {
+                        #(#feature_match_arms)*
+                        _ => {}
+                    }
+                    next = unsafe { (*next).p_next };
+                }
+            }};
+        }
+
+        #[allow(unsafe_op_in_unsafe_fn)]
+        unsafe fn chain_contains(self_next: *const c_void, other_next: *const c_void) -> bool {
+            // SAFETY: Walking requires valid, initialized Vulkan structures with
+            // correct s_type values, as guaranteed for feature chains returned
+            // by vkGetPhysicalDeviceFeatures2. The chains are only read here.
+            let mut valid = true;
+        for_each_feature!(other_next, check_feature_node, (self_next, &mut valid as *mut bool));
+            valid
+        }
+
+        unsafe fn check_feature_node<T: FeatureStruct + Default>(
+            node: &T,
+            context: (*const c_void, *mut bool),
+        ) -> bool {
+            let (self_next, valid) = context;
+            if unsafe { !contains_feature_node(node, self_next) } {
+                unsafe { *valid = false };
+                return false;
+            }
+            true
+        }
+
+        unsafe fn contains_feature_node<T: FeatureStruct + Default>(
+            node: &T,
+            self_next: *const c_void,
+        ) -> bool {
+            let mut current = self_next.cast::<Header>();
+            while !current.is_null() {
+                let header = unsafe { &*current };
+                if header.s_type == T::STRUCTURE_TYPE {
+                    return unsafe { (&*current.cast::<T>()).contains_fields(node) };
+                }
+                current = header.p_next.cast_const();
+            }
+            T::default().contains_fields(node)
+        }
+
+        #[allow(unsafe_op_in_unsafe_fn)]
+        unsafe fn chain_union(self_next: &mut *mut c_void, other_next: *const c_void) {
+            // SAFETY: Walking requires valid, initialized Vulkan structures with
+            // correct s_type values. The source chain is read-only; only nodes
+            // reachable from this mutable destination root are written.
+            for_each_feature!(other_next, union_feature_node, self_next as *mut *mut c_void);
+        }
+
+        unsafe fn union_feature_node<T: FeatureStruct>(node: &T, self_next: *mut *mut c_void) -> bool {
+            let root = unsafe { &mut *self_next };
+            let mut current = (*root).cast::<Header>();
+            while !current.is_null() {
+                let header = unsafe { &mut *current };
+                if header.s_type == T::STRUCTURE_TYPE {
+                    unsafe { (&mut *current.cast::<T>()).union_fields(node) };
+                    return true;
+                }
+                current = header.p_next;
+            }
+
+            // The new node is leaked intentionally: a Vulkan chain may outlive
+            // this stack frame. The destination tail is writable and its p_next
+            // is overwritten; callers must own writable destination chain memory.
+            let leaked = Box::into_raw(Box::new(*node));
+            unsafe { (*leaked.cast::<Header>()).p_next = ptr::null_mut() };
+            let appended = leaked.cast::<Header>();
+            if (*root).is_null() {
+                *root = appended.cast::<c_void>();
+            } else {
+                let mut tail = (*root).cast::<Header>();
+                while !unsafe { (*tail).p_next }.is_null() {
+                    tail = unsafe { (*tail).p_next };
+                }
+                unsafe { (*tail).p_next = appended };
+            }
+            true
+        }
+    };
+
+    let mut child = std::process::Command::new("rustfmt")
+        .stdin(std::process::Stdio::piped())
+        .stdout(File::create(src_dir.as_ref().join("features.rs")).expect("features.rs"))
+        .spawn()
+        .expect("Failed to spawn `rustfmt`");
+    child
+        .stdin
+        .take()
+        .expect("Failed to open stdin")
+        .write_all(source_code.to_string().as_bytes())
+        .unwrap();
+    child.wait().expect("Failed to format feature source code");
+}
+
+fn ash_type_is_provisional(ident: &proc_macro2::Ident) -> bool {
+    let source = include_str!("../../../ash/ash/src/vk/definitions.rs");
+    let Some(start) = source.find(&format!("pub struct {ident}")) else {
+        return false;
+    };
+    let preceding = &source[..start];
+    let struct_attributes = preceding
+        .rfind("#[repr(C)]")
+        .map(|attribute| &preceding[attribute..])
+        .unwrap_or(preceding);
+    struct_attributes.contains("#[cfg(feature = \"provisional\")]")
+}
+
+fn ash_tagged_structures() -> std::collections::HashMap<String, String> {
+    use std::collections::HashMap;
+
+    let source = include_str!("../../../ash/ash/src/vk/definitions.rs");
+    let mut tagged_structures = HashMap::new();
+    let lines = source.lines().collect::<Vec<_>>();
+    for (index, line) in lines.iter().enumerate() {
+        let Some(struct_name) = line
+            .trim()
+            .strip_prefix("unsafe impl<'a> TaggedStructure<'a> for ")
+            .and_then(|tail| tail.strip_suffix("<'a> {"))
+        else {
+            continue;
+        };
+        // ash may wrap the const expression across multiple lines, so inspect
+        // the remainder of this impl block until its closing brace.
+        let const_name = lines[index + 1..]
+            .iter()
+            .take_while(|line| line.trim() != "}")
+            .find_map(|line| {
+                let line = line.trim();
+                line.split_once("StructureType::")
+                    .and_then(|(_, tail)| tail.strip_suffix(';'))
+            });
+        let Some(const_name) = const_name else {
+            continue;
+        };
+        tagged_structures.insert(struct_name.to_owned(), const_name.to_owned());
+    }
+    tagged_structures
 }

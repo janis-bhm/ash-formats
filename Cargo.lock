@@ -18,6 +18,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0bb44936d800fea8f016d7f2311c6a4f97aebd5dc86f09906139ec848cf3a46f"
 
 [[package]]
+name = "ash-features"
+version = "0.1.0"
+dependencies = [
+ "ash",
+]
+
+[[package]]
 name = "ash-formats"
 version = "0.1.0"
 dependencies = [

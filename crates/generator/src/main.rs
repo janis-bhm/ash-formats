@@ -7,4 +7,8 @@ fn main() {
         Path::new("ash/generator/Vulkan-Headers"),
         "crates/ash-formats/src",
     );
+    formats_generator::write_features_source_code(
+        Path::new("ash/generator/Vulkan-Headers"),
+        "crates/ash-features/src",
+    );
 }
